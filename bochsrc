@@ -1,0 +1,9 @@
+memory: guest=1024, host=512
+boot: disk
+mouse: enabled=0
+display_library: x, options="gui_debug"
+romimage: file=/usr/share/bochs/BIOS-bochs-legacy
+ata0-master: type=disk, path="build/os.iso", mode=flat
+port_e9_hack: enabled=1
+cpu: model=corei7_skylake_x, reset_on_triple_fault=0
+pci: enabled=1, chipset=i440fx, advopts=none

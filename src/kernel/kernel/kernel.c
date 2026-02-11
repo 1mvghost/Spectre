@@ -1,0 +1,135 @@
+#include <util.h>
+#include <stdio.h>
+#include <acpi.h>
+#include <pci.h>
+#include <ide.h>
+#include <idt.h>
+#include <isr.h>
+#include <pmm.h>
+#include <vmm.h>
+#include <font.h>
+#include <acpi.h>
+#include <limine.h>
+#include <gdt.h>
+#include <ahci.h>
+
+__attribute__((used, section(".limine_requests")))
+static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_framebuffer_request framebufferRequest = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST_ID,
+    .revision = 0
+};
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_memmap_request mMapRequest = {
+    .id = LIMINE_MEMMAP_REQUEST_ID,
+    .revision = 0
+};
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_rsdp_request rsdpRequest = {
+    .id = LIMINE_RSDP_REQUEST_ID,
+    .revision = 4
+};
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_firmware_type_request firmwareRequest = {
+    .id = LIMINE_FIRMWARE_TYPE_REQUEST_ID,
+    .revision = 4
+};
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_module_request modRequest = {
+    .id = LIMINE_MODULE_REQUEST_ID,
+    .revision = 4
+};
+
+
+__attribute__((used, section(".limine_requests_start")))
+static volatile u64 limine_requests_start_marker[] = LIMINE_REQUESTS_START_MARKER;
+
+__attribute__((used, section(".limine_requests_end")))
+static volatile u64 limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
+
+
+struct Stacktrace{
+   struct Stacktrace* rbp;
+   u64                rip;
+};
+
+void panic(char* err) {
+   printf(PANIC,"%s",err);
+   printf(PANIC,"--- Kernel Call Trace ---\n");
+   struct Stacktrace *stk;
+   asm("movq %%rbp,%0" : "=r"(stk) ::);
+   //while(stk) {
+   for(u64 fr = 0; stk && fr < 10; ++fr) {
+      if(stk->rip==0) break;
+      printf(PANIC,"%x\n",stk->rip);
+      stk = stk->rbp;
+   }
+   asm("cli"); asm("hlt");
+}
+
+void test() {
+#define AHCI_TEST
+#ifdef AHCI_TEST
+   u8* buf = VIRT(pmmAlloc(512));
+   ahciRead(0,0,1,buf);
+   for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
+   printf(0,"\n");
+#endif
+}
+
+void main(){
+   asm("cli");
+   if(LIMINE_BASE_REVISION_SUPPORTED(limine_base_revision) == 0) {
+      asm("hlt");
+   }
+   struct limine_framebuffer *fb = framebufferRequest.response->framebuffers[0];
+   struct limine_memmap_entry* mMap = mMapRequest.response->entries[0];
+
+   u64 fbAddr =   (u64)fb->address;
+   u64 fbPitch =  (u64)fb->pitch;
+   u64 fbHeight = (u64)fb->height;
+   u64 mapLen   = (u64)mMapRequest.response->entry_count;
+   u64 acpiAddr = 0;
+
+   if(rsdpRequest.response) {
+      acpiAddr = (u64)rsdpRequest.response->address;
+   }
+
+   gdtInit();
+   idtInit();
+   isrInit();
+   fontInit(fbAddr,fbPitch);
+
+   printf(0,"Spectre v1.0 (www.github.com/1mvghost/Spectre)\n");
+   printf(0,"64-Bit Long Mode ("); 
+   switch(firmwareRequest.response->firmware_type) {
+      case LIMINE_FIRMWARE_TYPE_EFI64:   printf(0,"UEFI)\n\n"); break;
+      case LIMINE_FIRMWARE_TYPE_X86BIOS: printf(0,"BIOS)\n\n"); break;
+   }
+
+   for(int i = 0; i < mapLen; i++) {
+      if(mMap[i].base==0x100000) pmmInit(0x100000,mMap[i].base+mMap[i].length);
+      //printf(INFO,"%x -> %x TYPE:%d\n", mMap[i].base, mMap[i].base+mMap[i].length, mMap[i].type);
+   }
+
+   vmmInit();
+   vmmMap(0xffffffff90000000,PHYS(fbAddr),(fbPitch*fbHeight)/4096,PTE_WRITABLE);
+
+   pciInit();
+
+   if(acpiAddr) {
+      acpiInit(acpiAddr);
+   } else {
+      printf(ERR,"ACPI NOT FOUND\n");
+   }
+
+   test();
+   keypress();
+   acpiShutdown();
+
+   panic("\n");
+}
