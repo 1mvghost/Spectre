@@ -2,7 +2,7 @@
 BUILD?=/build
 INC?=/inc
 ISO?=/iso
-SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util
+SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util $(BUILD)/fs
 #Tools
 GCC=/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
 GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic

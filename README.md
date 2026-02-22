@@ -14,6 +14,7 @@ Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/
 * ..and much more</br>
 
 # * COMPILING *
+(no need to compile, release is in the "Releases" tab)
 1. Clone the repository
 ```bash
 git clone https://github.com/1mvghost/Spectre.git

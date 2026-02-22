@@ -127,7 +127,7 @@ void main(){
       printf(ERR,"ACPI NOT FOUND\n");
    }
 
-   test();
+   //test();
    keypress();
    acpiShutdown();
 
