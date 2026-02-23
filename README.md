@@ -19,8 +19,9 @@ Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/
 ```bash
 git clone https://github.com/1mvghost/Spectre.git
 ```
-2. Make (you may need some dependencies installed like x86_64-elf-gcc, nasm etc)
+2. Install some stuff you may need and make (make sure you're at the root!)
 ```bash
+./install.sh
 make all
 ```
 3. You can now run the OS with either of these commands :)

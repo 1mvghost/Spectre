@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <vmm.h>
 #include <pmm.h>
-//#define AHCI_BASE	         0x400000
 
 #define FIS_TYPE_REG_H2D          0x27
 

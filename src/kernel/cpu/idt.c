@@ -34,14 +34,8 @@ void idtSetDesc(u8 i, void* isr, u8 flags) {
     entry->Ist        = 0;
 }
 void idtInit() {
-    //asm volatile("cli");
     idtr.Base =  (u64)idt;
     idtr.Limit = sizeof(idt)-1;
     
-    //for(u8 i = 0; i < 32; i++) {
-    //    idtSetDesc(i, tesst, 0x8E);
-    //}
-
-    //asm volatile ("lidt %0" : : "m"(idtr));
     idtLoad(&idtr);
 }

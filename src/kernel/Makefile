@@ -4,9 +4,9 @@ INC?=/inc
 ISO?=/iso
 SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util $(BUILD)/fs
 #Tools
-GCC=/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
+GCC=gcc #/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
 GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic
-LD=/usr/local/x86_64elfgcc/bin/x86_64-elf-ld
+LD=ld #/usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 NASM=nasm
 
 #Misc
