@@ -351,7 +351,7 @@ void ideInit(u32 bar0, u32 bar1, u32 bar2, u32 bar3, u32 bar4) {
     int i = 0;
     for(i=0;i<4;i++) {
         if(dev[i].Reserved==1) {
-            printf(INFO,"FOUND IDE: TYPE:%s SIZE:%d MODEL:%s\n",(const char *[]){"ATA", "ATAPI"}[dev[i].Type],dev[i].Size,dev[i].Model);
+            debug("ide: FOUND IDE: TYPE:%s SIZE:%d MODEL:%s\n",(const char *[]){"ATA", "ATAPI"}[dev[i].Type],dev[i].Size,dev[i].Model);
         }
     }
 }

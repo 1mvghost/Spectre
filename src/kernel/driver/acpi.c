@@ -4,6 +4,7 @@
 #include <pci.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <debug.h>
 typedef struct {
    char signature[4];
    u32 length;
@@ -94,11 +95,12 @@ static RSDT *rsdt;
 static FADT *fadt;
 static int SLP_TYPa;
 static int SLP_TYPb;
+static int found = 0;
 
 void acpiInit(u64 rsdpAddr){
    rsdp = (RSDP*) rsdpAddr;
-   printf(INFO,"ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
-   printf(INFO,"RSDT ADDR: %x\n",rsdp->rsdt);
+   debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
+   debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);
    acpiRsdt(VIRT(rsdp->rsdt));
 }
 
@@ -107,8 +109,8 @@ void acpiRsdt(RSDT* rsdt) {
       
       u64 a = (u64)VIRT(rsdt->sdtPtr[i]);
       SDTHeader *h = (SDTHeader*) a;
-
-      printf(INFO,"FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
+      found++;
+      debug("acpi: FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
       if(!memCmp(h->signature, "FACP", 4)) {
          fadt = (FADT*) a;
          if(!memCmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
@@ -135,7 +137,7 @@ void acpiRsdt(RSDT* rsdt) {
          } 
       }
    }
-   //printf(0,"\n");
+   //printf(INFO,"FOUND %d ACPI TABLES\n",found);
 }
 
 void acpiShutdown(){

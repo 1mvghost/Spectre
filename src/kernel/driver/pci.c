@@ -3,6 +3,7 @@
 #include <ide.h>
 #include <ahci.h>
 #include <vmm.h>
+#include <debug.h>
 
 #define CONFIG_ADDRESS 0xCF8
 #define CONFIG_DATA    0xCFC
@@ -183,7 +184,7 @@ void pciCheckDevice(u32 bus, u32 dev) {
             if(d->Subclass==0||d->Subclass<subClLen[d->Classcode]) {
                 subc=subCl[d->Classcode][d->Subclass];
             }
-            printf(INFO,"FOUND PCI: %s(%d) -> %s(%d) BAR0:%x BAR1:%x BAR2:%x BAR3:%x BAR4:%x BAR5:%x HEADER:%x [%s]\n",class[d->Classcode],d->Classcode,subc, d->Subclass,d->Bar0,d->Bar1,d->Bar2,d->Bar3,d->Bar4,d->Bar5,d->Header,pciGetVendor(vendor));
+            debug("pci: FOUND PCI: %s(%d) -> %s(%d) BAR0:%x BAR1:%x BAR2:%x BAR3:%x BAR4:%x BAR5:%x HEADER:%x [%s]\n",class[d->Classcode],d->Classcode,subc, d->Subclass,d->Bar0,d->Bar1,d->Bar2,d->Bar3,d->Bar4,d->Bar5,d->Header,pciGetVendor(vendor));
             pciHandle(*d);
             devI++;
         }
@@ -198,6 +199,7 @@ void pciEnum() {
             pciCheckDevice(bus, dev);
         }
     }
+    //printf(INFO,"FOUND %d PCI DEVICES\n", devI+1);
 }
 void pciInit() {
     pciEnum();

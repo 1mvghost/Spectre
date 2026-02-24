@@ -1,5 +1,5 @@
 #include <ahci.h>
-#include <stdio.h>
+#include <debug.h>
 #include <vmm.h>
 #include <pmm.h>
 
@@ -192,7 +192,7 @@ int ahciCmdFindFree(HbaPort *port) {
         }
         slots >>= 1;
     }
-    printf(ERR,"CANNOT FIND FREE CMD SLOT\n");
+    debug("ahci: CANNOT FIND FREE CMD SLOT\n");
     return -1;
 }
 int ahciCheckType(HbaPort *port) {
@@ -270,7 +270,7 @@ bool ahciRead(int p, u64 lba, u32 sectAmount, u16 *buf) {
         spin++;
     }
     if(spin == 1000000) {
-        printf(ERR,"PORT IS HUNG\n");
+        debug("ahci: PORT IS HUNG\n");
         return 0;
     }
 
@@ -281,12 +281,12 @@ bool ahciRead(int p, u64 lba, u32 sectAmount, u16 *buf) {
             break;
         }
         if(port->Is & HBA_PxIS_TFES) {
-            printf(ERR,"ERROR READING FROM DISK\n");
+            debug("ahci: ERROR READING FROM DISK\n");
             return 0;
         }
     }
     if(port->Is & HBA_PxIS_TFES) {
-        printf(ERR,"ERROR READING FROM DISK\n");
+        debug("ahci: ERROR READING FROM DISK\n");
         return 0;
     }
     return 1;
@@ -349,7 +349,7 @@ bool ahciWrite(int p, u64 lba, u32 sectAmount, u16 *buf) {
         spin++;
     }
     if(spin == 1000000) {
-        printf(ERR,"PORT IS HUNG\n");
+        debug("ahci: PORT IS HUNG\n");
         return 0;
     }
 
@@ -360,12 +360,12 @@ bool ahciWrite(int p, u64 lba, u32 sectAmount, u16 *buf) {
             break;
         }
         if(port->Is & HBA_PxIS_TFES) {
-            printf(ERR,"ERROR WRITING TO DISK\n");
+            debug("ahci: ERROR WRITING TO DISK\n");
             return 0;
         }
     }
     if(port->Is & HBA_PxIS_TFES) {
-        printf(ERR,"ERROR WRITING TO DISK\n");
+        debug("ahci: ERROR WRITING TO DISK\n");
         return 0;
     }
     return 1;
@@ -377,17 +377,17 @@ void ahciEnum() {
         if(pi & 1) {
             int type = ahciCheckType(&base->Ports[i]);
             if (type == AHCI_DEV_SATA){
-				printf(INFO,"SATA drive found at port %d\n", i);
+				debug("ahci: SATA drive found at port %d\n", i);
                 ahciRebase(i,&base->Ports[i]);
             }
 			else if (type == AHCI_DEV_SATAPI){
-				printf(INFO,"SATAPI drive found at port %d\n", i);
+				debug("ahci: SATAPI drive found at port %d\n", i);
 			}
 			else if (type == AHCI_DEV_SEMB){
-				printf(INFO,"SEMB drive found at port %d\n", i);
+				debug("ahci: SEMB drive found at port %d\n", i);
 			}
 			else if (type == AHCI_DEV_PM){
-				printf(INFO,"PM drive found at port %d\n", i);
+				debug("ahci: PM drive found at port %d\n", i);
 			}
         }
         pi>>=1;
