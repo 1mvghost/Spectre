@@ -106,7 +106,7 @@ void main(){
    gdtInit();
    idtInit();
    isrInit();
-   fontInit(fbAddr,fbPitch);
+   fbInit(fbPitch,fbHeight,fbAddr);
 
    printf(0,"Spectre v1.0 (www.github.com/1mvghost/Spectre)\n");
    printf(0,"64-Bit Long Mode ("); 
@@ -114,15 +114,8 @@ void main(){
       case LIMINE_FIRMWARE_TYPE_EFI64:   printf(0,"UEFI)\n\n"); break;
       case LIMINE_FIRMWARE_TYPE_X86BIOS: printf(0,"BIOS)\n\n"); break;
    }
-
-   for(int i = 0; i < mapLen; i++) {
-      if(mMap[i].base==0x100000) pmmInit(0x100000,mMap[i].base+mMap[i].length);
-      //printf(INFO,"%x -> %x TYPE:%d\n", mMap[i].base, mMap[i].base+mMap[i].length, mMap[i].type);
-   }
-
+   for(int i = 0; i < mapLen; i++) if(mMap[i].base==0x100000) pmmInit(0x100000,mMap[i].base+mMap[i].length);
    vmmInit();
-   vmmMap(0xffffffff90000000,PHYS(fbAddr),(fbPitch*fbHeight)/4096,PTE_WRITABLE);
-
    pciInit();
 
    if(acpiAddr) {

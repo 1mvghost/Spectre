@@ -1,14 +1,8 @@
 #include <font.h>
-
-static u64 fbAddr;
-static u64 resPitch;
-
-u64 fontPitch(){
-    return resPitch;
-}
+#include <fb.h>
 void fontDraw(u64 x, u64 y) {
-    u64 loc = (y*(resPitch/4)) + x; 
-    *((u32*)fbAddr+loc) = 0b00000000111111111111111111111111;
+    u64 loc = (y*(fbResX()/4)) + x; 
+    *((u32*)fbGetAddr()+loc) = 0b00000000111111111111111111111111;
 }
 
 void fontCh(u64 x, u64 y, char c) {
@@ -20,8 +14,4 @@ void fontCh(u64 x, u64 y, char c) {
             }
         }
     }
-}
-void fontInit(u64 addr, u64 pitch) {
-    fbAddr=addr;
-    resPitch=pitch;
 }

@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <font.h>
-
+#include <fb.h>
 u64 curX=0;
 u64 curY=0;
 void scroll(){
     /* terrible scroll */
-    memMove(0xffffffff90000000, 0xffffffff90000000+(fontPitch()*16), (fontPitch()*16)*47);
-    memSet(0xffffffff90000000+((fontPitch()*16)*47), 0, fontPitch()*16);
+    memMove(fbGetAddr(), fbGetAddr()+(fbResX()*16), (fbResX()*16)*47);
+    memSet(fbGetAddr()+((fbResX()*16)*47), 0, fbResX()*16);
     curY=768-16;
     curX=0;
 }
@@ -16,16 +16,16 @@ void putc(char ch){
         case '\n':
             curY+=16;
             curX=0;
-            if(curY>=768){
+            if(curY>=fbResY()){
                 scroll();
             }
             break;
         default: 
-            if(curX>1023) {
+            if(curX>(fbResX()/4)) {
                 curX=0;
                 curY+=16;
             }
-            if(curY>=768) {
+            if(curY>=fbResY()) {
                 scroll();
             }
             fontCh(curX,curY,ch);
