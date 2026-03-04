@@ -98,6 +98,10 @@ static int SLP_TYPb;
 static int found = 0;
 
 void acpiInit(u64 rsdpAddr){
+   if(rsdpAddr == 0) {
+      debug("acpi: NOT FOUND :(\n");
+      return;
+   }
    rsdp = (RSDP*) rsdpAddr;
    debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
    debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);

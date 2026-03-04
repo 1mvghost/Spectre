@@ -117,12 +117,7 @@ void main(){
    for(int i = 0; i < mapLen; i++) if(mMap[i].base==0x100000) pmmInit(0x100000,mMap[i].base+mMap[i].length);
    vmmInit();
    pciInit();
-
-   if(acpiAddr) {
-      acpiInit(acpiAddr);
-   } else {
-      printf(ERR,"ACPI NOT FOUND\n");
-   }
+   acpiInit(acpiAddr);
 
    test();
    keypress();
