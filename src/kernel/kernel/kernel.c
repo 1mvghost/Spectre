@@ -13,6 +13,7 @@
 #include <gdt.h>
 #include <ahci.h>
 #include <debug.h>
+#include <mmap.h>
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
 
@@ -107,14 +108,14 @@ void main(){
    idtInit();
    isrInit();
    fbInit(fbPitch,fbHeight,fbAddr);
-
    printf(0,"Spectre v1.0 (www.github.com/1mvghost/Spectre)\n");
    printf(0,"64-Bit Long Mode ("); 
    switch(firmwareRequest.response->firmware_type) {
       case LIMINE_FIRMWARE_TYPE_EFI64:   printf(0,"UEFI)\n\n"); break;
       case LIMINE_FIRMWARE_TYPE_X86BIOS: printf(0,"BIOS)\n\n"); break;
    }
-   for(int i = 0; i < mapLen; i++) if(mMap[i].base==0x100000) pmmInit(0x100000,mMap[i].base+mMap[i].length);
+   mMapInit(mMapRequest.response);
+   pmmInit(0x100000, 0x600000);
    vmmInit();
    pciInit();
    acpiInit(acpiAddr);

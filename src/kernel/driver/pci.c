@@ -199,7 +199,7 @@ void pciEnum() {
             pciCheckDevice(bus, dev);
         }
     }
-    //printf(INFO,"FOUND %d PCI DEVICES\n", devI+1);
+    printf(INFO,"FOUND %d PCI DEVICES\n", devI+1);
 }
 void pciInit() {
     pciEnum();

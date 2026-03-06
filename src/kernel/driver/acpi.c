@@ -141,7 +141,7 @@ void acpiRsdt(RSDT* rsdt) {
          } 
       }
    }
-   //printf(INFO,"FOUND %d ACPI TABLES\n",found);
+   printf(INFO,"FOUND %d ACPI TABLES\n",found);
 }
 
 void acpiShutdown(){
