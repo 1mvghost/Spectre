@@ -59,7 +59,7 @@ void pmmInit() {
     if(ent == -1) panic("PMM ERROR :(\n");
 
     bm = (u8*) VIRT(mMapGet(ent).base);
-    memSet(bm,0xf,bmSize);
+    memSet(bm,0xff,bmSize);
 
     debug("pmm: BITMAP ADDR: %x\n",bm);
 

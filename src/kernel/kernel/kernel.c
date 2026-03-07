@@ -83,6 +83,18 @@ void test() {
    //debugPuts("serial test test\n");
    debug("serial printf test %d %d %d %x %x",67,69,420,0xdeadbeef,0xcafebabe);
 #endif
+#ifdef PMM_TEST
+   u64 *a = pmmAlloc();
+   u64 *b = pmmAlloc();
+
+   pmmFree(a);
+
+   for(int i = 0; i < 500; i++) {
+      pmmAlloc();
+   }
+
+   pmmAlloc();
+#endif
 }
 
 void main(){

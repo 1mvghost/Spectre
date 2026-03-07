@@ -2,7 +2,8 @@
 #include <debug.h>
 static u64 total=0;
 static int len=0;
-static struct limine_memmap_entry ent[256];
+/* real hardware fix : increased to 1024 */
+static struct limine_memmap_entry ent[1024];
 
 struct limine_memmap_entry mMapGet(u64 i) {
     return ent[i];
