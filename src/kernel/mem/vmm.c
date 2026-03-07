@@ -23,7 +23,7 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
     while (n--) {
         if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {
             u64* ent = &p4->Ent[P4(virt)];
-            u64* fr = (u64*) pmmAlloc();
+            u64* fr = (u64*) pmmAlloc(4096);
             memSet(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);
@@ -33,7 +33,7 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
         PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
         if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) {
             u64* ent = &p3->Ent[P3(virt)];
-            u64* fr = (u64*) pmmAlloc();
+            u64* fr = (u64*) pmmAlloc(4096);
             memSet(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);
@@ -42,7 +42,7 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
         PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
         if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) {
             u64* ent = &p2->Ent[P2(virt)];
-            u64* fr = (u64*) pmmAlloc();
+            u64* fr = (u64*) pmmAlloc(4096);
             memSet(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);

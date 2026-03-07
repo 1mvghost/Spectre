@@ -5,5 +5,4 @@
 void mMapInit(struct limine_memmap_response *mMap);
 struct limine_memmap_entry mMapGet(u64 i);
 int mMapLen();
-u64 mMapTotalMem();
 #endif
