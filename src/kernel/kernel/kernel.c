@@ -115,7 +115,7 @@ void main(){
       case LIMINE_FIRMWARE_TYPE_X86BIOS: printf(0,"BIOS)\n\n"); break;
    }
    mMapInit(mMapRequest.response);
-   pmmInit(0x100000, 0x600000);
+   pmmInit();
    vmmInit();
    pciInit();
    acpiInit(acpiAddr);
