@@ -14,6 +14,7 @@
 #include <ahci.h>
 #include <debug.h>
 #include <mmap.h>
+
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
 
@@ -84,16 +85,15 @@ void test() {
    debug("serial printf test %d %d %d %x %x",67,69,420,0xdeadbeef,0xcafebabe);
 #endif
 #ifdef PMM_TEST
-   u64 *a = pmmAlloc();
-   u64 *b = pmmAlloc();
+   u64 *a = pmmAlloc(1);
+   u64 *b = pmmAlloc(1);
+   printf(INFO,"a:%x b:%x\n",a,b);
 
-   pmmFree(a);
+   pmmFree(a,1);
 
-   for(int i = 0; i < 500; i++) {
-      pmmAlloc();
-   }
+   pmmAlloc(2);
+   pmmAlloc(3553323);
 
-   pmmAlloc();
 #endif
 }
 
@@ -114,7 +114,6 @@ void main(){
    if(rsdpRequest.response) {
       acpiAddr = (u64)rsdpRequest.response->address;
    }
-
    debugInit();
    gdtInit();
    idtInit();
@@ -126,6 +125,7 @@ void main(){
       case LIMINE_FIRMWARE_TYPE_EFI64:   printf(0,"UEFI)\n\n"); break;
       case LIMINE_FIRMWARE_TYPE_X86BIOS: printf(0,"BIOS)\n\n"); break;
    }
+
    mMapInit(mMapRequest.response);
    pmmInit();
    vmmInit();

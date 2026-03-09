@@ -36,6 +36,7 @@ void debugPutNum(u64 num, int radix) {
     
 }
 void debug(char* fmt, ...) {
+    //return;
     va_list va;
     va_start(va,fmt);
     int state = 0;

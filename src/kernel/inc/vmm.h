@@ -1,6 +1,6 @@
 #ifndef VMM_H
 #define VMM_H
-
+#define PAGE_SIZE           0x1000 //4096
 #define PAGE_ADDR_MASK      0x000ffffffffff000
 #define	PTE_PRESENT			1		    //0000000000000000000000000000001
 #define	PTE_WRITABLE		2		    //0000000000000000000000000000010

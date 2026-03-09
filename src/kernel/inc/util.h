@@ -27,11 +27,11 @@ u16 in16(u16 port);
 
 u32 in32(u16 port);
 void ins32(u16 port, u32 *buf, int q);
-void memSet(void *dst, u8 value, int n);
-void* memCpy(void *dst, void *src, int n);
+void memset(void *dst, u8 value, int n);
+void* memcpy(void *dst, void *src, int n);
 void sti();
 u8 keypress();
-int memCmp(void* a, void* b, int cnt);
+int memcmp(void* a, void* b, int cnt);
 void cpuid(int code, u32 *a, u32 *d);
 */
 static inline void out8(u16 port, u8 val)
@@ -79,14 +79,14 @@ static inline void ins32(u16 port, u32 *buf, int q) {
         buf[i]=in32(port);
     }
 }
-static inline void memSet(void *dst, u8 value, int n) {
+static inline void memset(void *dst, u8 value, int n) {
     u8 *d = dst;
 
     while (n-- > 0) {
         *d++ = value;
     }
 }
-static inline void* memCpy(void *dst, void *src, int n) {
+static inline void* memcpy(void *dst, void *src, int n) {
     u8* d = (u8*) dst;
     u8* s = (u8*) src;
     for(int i = 0; i<n; i++) {
@@ -94,7 +94,7 @@ static inline void* memCpy(void *dst, void *src, int n) {
     }
     return dst;
 }
-static inline void* memMove(void* dstptr, const void* srcptr, u64 size) {
+static inline void* memmove(void* dstptr, const void* srcptr, u64 size) {
 	unsigned char* dst = (unsigned char*) dstptr;
 	const unsigned char* src = (const unsigned char*) srcptr;
 	if (dst < src) {
@@ -119,7 +119,7 @@ static inline u8 keypress() {
     while ((in8(0x64) & 1) == 0){}
     return in8(0x60);
 }
-static inline int memCmp(void* a, void* b, int cnt) {
+static inline int memcmp(void* a, void* b, int cnt) {
     if(!cnt) return 0;
 
     while(--cnt && *(char*)a == *(char*)b) {

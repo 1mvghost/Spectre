@@ -2,7 +2,6 @@
 #include <pmm.h>
 
 
-#define PAGE_SIZE                 0x1000 //4096
 #define OFFSET(addr)              (addr&0xFFF)
 #define P1(addr)                  ((addr >> 12)&0x1FF)
 #define P2(addr)                  ((addr >> 21)&0x1FF)
@@ -23,8 +22,8 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
     while (n--) {
         if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {
             u64* ent = &p4->Ent[P4(virt)];
-            u64* fr = (u64*) pmmAlloc();
-            memSet(VIRT(fr),0,4096);
+            u64* fr = (u64*) pmmAlloc(1);
+            memset(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);
             FRAME_SET    (ent, (u64)fr);
@@ -33,8 +32,8 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
         PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
         if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) {
             u64* ent = &p3->Ent[P3(virt)];
-            u64* fr = (u64*) pmmAlloc();
-            memSet(VIRT(fr),0,4096);
+            u64* fr = (u64*) pmmAlloc(1);
+            memset(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);
             FRAME_SET    (ent, (u64)fr);
@@ -42,8 +41,8 @@ void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
         PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
         if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) {
             u64* ent = &p2->Ent[P2(virt)];
-            u64* fr = (u64*) pmmAlloc();
-            memSet(VIRT(fr),0,4096);
+            u64* fr = (u64*) pmmAlloc(1);
+            memset(VIRT(fr),0,4096);
             ATTRIBUTE_SET(ent, PTE_PRESENT);
             ATTRIBUTE_SET(ent, flag);
             FRAME_SET    (ent, (u64)fr);
@@ -100,7 +99,7 @@ void vmmInit(){
     //}
 
     //PageTable* p3 = (PageTable*) VIRT(pmmAllocBlock());
-    //memSet(p3,0,4096);
+    //memset(p3,0,4096);
     //
     //u64* ent = &p4->Ent[256];
     //ATTRIBUTE_SET(ent, PTE_PRESENT);

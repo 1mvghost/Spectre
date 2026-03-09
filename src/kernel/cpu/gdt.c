@@ -36,7 +36,7 @@ void gdtSetDesc(u8 i, u32 limit, u32 base, u8 access, u8 flags) {
 
 void gdtInit() {
     /* todo: tss */
-    memSet(gdt,0,sizeof(gdt));
+    memset(gdt,0,sizeof(gdt));
     gdtr.Base =  (u64)gdt;
     gdtr.Limit = sizeof(gdt)-1;
 

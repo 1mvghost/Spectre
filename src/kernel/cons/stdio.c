@@ -6,8 +6,8 @@ u64 curX=0;
 u64 curY=0;
 void scroll(){
     /* terrible scroll */
-    memMove(fbGetAddr(), fbGetAddr()+(fbResX()*16), (fbResX()*16)*47);
-    memSet(fbGetAddr()+((fbResX()*16)*47), 0, fbResX()*16);
+    memmove(fbGetAddr(), fbGetAddr()+(fbResX()*16), (fbResX()*16)*47);
+    memset(fbGetAddr()+((fbResX()*16)*47), 0, fbResX()*16);
     curY=768-16;
     curX=0;
 }

@@ -115,13 +115,13 @@ void acpiRsdt(RSDT* rsdt) {
       SDTHeader *h = (SDTHeader*) a;
       found++;
       debug("acpi: FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
-      if(!memCmp(h->signature, "FACP", 4)) {
+      if(!memcmp(h->signature, "FACP", 4)) {
          fadt = (FADT*) a;
-         if(!memCmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
+         if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
             char *s5 = (char*) VIRT(fadt->Dsdt+36);
             int *len = VIRT((fadt->Dsdt+1)-36);
             while(len-- > 0) {
-               if(!memCmp(s5, "_S5_", 4)) {
+               if(!memcmp(s5, "_S5_", 4)) {
                   break;
                }
                s5++;
