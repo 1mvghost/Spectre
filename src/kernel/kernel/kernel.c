@@ -95,6 +95,16 @@ void test() {
    pmmAlloc(3553323);
 
 #endif
+#ifdef PRINT_TEST
+   printf(INFO,"test\n");
+   char buf[67];
+   memset(buf,0,67);
+   sprintf(buf,"Hello world %x %x hi 123 %s %c\ns\n",0xdeadbeef,0xcafebabe,"string",'!');
+   for(int i=0; i<67; i++) {
+      printf(0,"%c",buf[i]);
+   }
+   printf(0,"hi!\n");
+#endif
 }
 
 void main(){
@@ -131,7 +141,7 @@ void main(){
    vmmInit();
    pciInit();
    acpiInit(acpiAddr);
-
+    
    test();
    keypress();
    acpiShutdown();

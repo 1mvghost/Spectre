@@ -1,18 +1,19 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include <stdio.h>
-#include <kernel.h>
-
-#define INFO 1
-#define ERR 2
-#define PANIC 3
 
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long int u64;
 typedef u8 bool;
+
+#include <stdio.h>
+#include <kernel.h>
+
+#define INFO 1
+#define ERR 2
+#define PANIC 3
 
 /*
 void out8(u16 port, u8 val);
