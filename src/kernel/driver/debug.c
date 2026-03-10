@@ -10,75 +10,19 @@ void debugPutc(char c) {
 
     out8(COM1,c);
 }
-void debugPuts(char* s) {
-    while(*s) {
-        debugPutc(*s);
-        s++;
-    }
-}
-void debugPutNum(u64 num, int radix) {
-    if(!num) {
-        debugPutc('0'); 
-        return;
-    }
-    char buf[32];
-    char* hex="0123456789ABCDEF";
-    int pos = 0;
-    while(num > 0) {
-        buf[pos] = hex[num % radix];
-        num /= radix;
-        pos++;
-    }
-
-    while (pos-- > 0) {
-        debugPutc(buf[pos]);
-    }
-    
-}
 void debug(char* fmt, ...) {
-    //return;
     va_list va;
     va_start(va,fmt);
-    int state = 0;
-    while(*fmt) {
-        switch (state){
-            case 0:
-                switch (*fmt){
-                    case '%':
-                        state = 1;
-                        ++fmt;
-                        break;
-                    default:
-                        debugPutc(*fmt);
-                        ++fmt;
-                        break;
-                }
-                break;
-            case 1:
-                switch (*fmt){
-                    case 'c':
-                        //putc(va_arg(va,char))
-                        debugPutc((char)va_arg(va,char*));
-                        break;
-                    case 's':
-                        debugPuts(va_arg(va,char*));
-                        break;
-                    case 'd':
-                        debugPutNum(va_arg(va,u64),10);
-                        break;
-                    case 'x':
-                        debugPutNum(va_arg(va,u64),16);
-                        break;
-                    case '%':
-                        debugPutc('%');
-                        break;
-                    default:
-                        break;
-                }
-                state = 0;
-                fmt++;
-        }
+
+    u8 buf[1024];
+    memset(buf,0,1024);
+    vsprintf(buf,fmt,va);
+
+    for(int i = 0; i < 1024; i++) {
+        if(!buf[i]) break;
+        debugPutc(buf[i]);
     }
+
     va_end(va);
 }
 

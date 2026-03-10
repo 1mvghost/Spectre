@@ -118,7 +118,6 @@ void main(){
    u64 fbAddr =   (u64)fb->address;
    u64 fbPitch =  (u64)fb->pitch;
    u64 fbHeight = (u64)fb->height;
-   u64 mapLen   = (u64)mMapRequest.response->entry_count;
    u64 acpiAddr = 0;
 
    if(rsdpRequest.response) {
