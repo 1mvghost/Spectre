@@ -1,5 +1,6 @@
 #include <font.h>
 #include <fb.h>
+
 void fontDraw(u64 x, u64 y) {
     u64 loc = (y*(fbResX()/4)) + x; 
     *((u32*)fbGetAddr()+loc) = 0b00000000111111111111111111111111;

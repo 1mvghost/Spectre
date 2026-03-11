@@ -1,5 +1,6 @@
 #include <debug.h>
 #include <stdarg.h>
+
 #define COM1 0x3F8
 
 int debugEmpty() {

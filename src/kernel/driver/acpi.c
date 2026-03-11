@@ -95,53 +95,43 @@ static RSDT *rsdt;
 static FADT *fadt;
 static int SLP_TYPa;
 static int SLP_TYPb;
-static int found = 0;
 
-void acpiInit(u64 rsdpAddr){
-   if(rsdpAddr == 0) {
-      debug("acpi: NOT FOUND :(\n");
-      return;
+void acpiFadt(FADT *fadt) {
+   if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
+      char *s5 = (char*) VIRT(fadt->Dsdt+36);
+      int *len = VIRT((fadt->Dsdt+1)-36);
+      while(len-- > 0) {
+         if(!memcmp(s5, "_S5_", 4)) {
+            break;
+         }
+         s5++;
+      }
+      if(len > 0) {
+         s5+=5;
+         s5+=((*s5 & 0xc0)>>6)+2;
+         if(*s5 == 0x0A) s5++;
+         SLP_TYPa=*(s5)<<10;
+         s5++;
+         if(*s5 == 0x0A) s5++;
+         SLP_TYPb = *(s5)<<10;
+      } else {
+         debug("acpi: FAILED TO FIND S5, SHUTDOWN WONT BE POSSIBLE :(\n");
+      }   
    }
-   rsdp = (RSDP*) rsdpAddr;
-   debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
-   debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);
-   acpiRsdt(VIRT(rsdp->rsdt));
 }
+
 
 void acpiRsdt(RSDT* rsdt) {
    for(int i = 0; i < (rsdt->h.length - sizeof(rsdt->h)) / 4; i++) {
       
       u64 a = (u64)VIRT(rsdt->sdtPtr[i]);
       SDTHeader *h = (SDTHeader*) a;
-      found++;
       debug("acpi: FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
       if(!memcmp(h->signature, "FACP", 4)) {
          fadt = (FADT*) a;
-         if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
-            char *s5 = (char*) VIRT(fadt->Dsdt+36);
-            int *len = VIRT((fadt->Dsdt+1)-36);
-            while(len-- > 0) {
-               if(!memcmp(s5, "_S5_", 4)) {
-                  break;
-               }
-               s5++;
-            }
-            if(len > 0) {
-               s5+=5;
-               s5+=((*s5 & 0xc0)>>6)+2;
-               if(*s5 == 0x0A) s5++;
-               SLP_TYPa=*(s5)<<10;
-               s5++;
-               if(*s5 == 0x0A) s5++;
-               SLP_TYPb = *(s5)<<10;
-            } else {
-               printf(ERR,"FAILED TO FIND S5, SHUTDOWN WONT BE POSSIBLE :(\n");
-               //asm("cli"); asm("hlt");
-            }   
-         } 
+         acpiFadt(fadt);
       }
    }
-   printf(INFO,"FOUND %d ACPI TABLES\n",found);
 }
 
 void acpiShutdown(){
@@ -152,4 +142,15 @@ void acpiShutdown(){
       out16(fadt->PM1bControlBlock, SLP_TYPb | 1<<13);
    }
    panic("SHUTDOWN FAILED\n");
+}
+
+void acpiInit(u64 rsdpAddr){
+   if(rsdpAddr == 0) {
+      debug("acpi: NOT FOUND :(\n");
+      return;
+   }
+   rsdp = (RSDP*) rsdpAddr;
+   debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
+   debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);
+   acpiRsdt(VIRT(rsdp->rsdt));
 }

@@ -2,8 +2,10 @@
 #include <stdarg.h>
 #include <font.h>
 #include <fb.h>
-u64 curX=0;
-u64 curY=0;
+
+static u64 curX=0;
+static u64 curY=0;
+
 void scroll(){
     /* terrible scroll */
     memmove(fbGetAddr(), fbGetAddr()+(fbResX()*16), (fbResX()*16)*47);

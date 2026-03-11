@@ -131,7 +131,7 @@ typedef volatile struct {
 } FisRegHostToDev;
 
 
-HbaMem *base;
+static HbaMem *base;
 
 void ahciCmdStart(HbaPort *port) {
     while(port->Cmd & HBA_PxCMD_CR){}

@@ -123,11 +123,13 @@ void main(){
    if(rsdpRequest.response) {
       acpiAddr = (u64)rsdpRequest.response->address;
    }
+
    debugInit();
    gdtInit();
    idtInit();
    isrInit();
    fbInit(fbPitch,fbHeight,fbAddr);
+
    printf(0,"Spectre v1.0 (www.github.com/1mvghost/Spectre)\n");
    printf(0,"64-Bit Long Mode ("); 
    switch(firmwareRequest.response->firmware_type) {
@@ -142,6 +144,7 @@ void main(){
    acpiInit(acpiAddr);
     
    test();
+   
    keypress();
    acpiShutdown();
 

@@ -17,7 +17,9 @@ typedef struct {
 } PageTable;
 
 static PageTable* p4;
+
 void vmmLoad(u64 *p4);
+
 void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
     while (n--) {
         if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {
@@ -83,36 +85,11 @@ void vmmUnmap(u64 virt, u64 n) {
     
 }
 void vmmInit(){
-    /* copy limine's page tables because my mine are buggy :( */
+    /* page table copy */
     u64 p4p = 0;
     asm("movq %%cr3, %0" : "=r"(p4p));
     p4 = (PageTable*)VIRT(PAGE_PHYS_ADDR(p4p));
 
-    
-    //vmmMap(0,0,512);
-
-    //for(int i = 0; i < entLen; i++) {
-    //    if(mMap[i].type == LIMINE_MEMMAP_EXECUTABLE_AND_MODULES) {
-    //        vmmMap(0xffffffff80000000,mMap[i].base,mMap[i].length/4096,PTE_WRITABLE);
-    //    }
-    //    printf(INFO,"%x -> %x TYPE:%x\n", mMap[i].base, mMap[i].base+mMap[i].length, mMap[i].type);
-    //}
-
-    //PageTable* p3 = (PageTable*) VIRT(pmmAllocBlock());
-    //memset(p3,0,4096);
-    //
-    //u64* ent = &p4->Ent[256];
-    //ATTRIBUTE_SET(ent, PTE_PRESENT);
-    //ATTRIBUTE_SET(ent, PTE_WRITABLE);
-    //FRAME_SET    (ent, PHYS((u64)p3));
-    //for(int i = 0; i<512; i++) {
-    //    u64* p3Ent = (u64*) &p3->Ent[i];
-    //    ATTRIBUTE_SET(p3Ent, PTE_PRESENT);
-    //    ATTRIBUTE_SET(p3Ent, PTE_WRITABLE);
-    //    ATTRIBUTE_SET(p3Ent, PTE_HUGE);
-    //    FRAME_SET    (p3Ent, (u64)i*0x40000000);
-    //}
-    
     vmmLoad(PHYS((u64)p4));
 }
 

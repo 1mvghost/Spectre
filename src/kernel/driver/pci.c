@@ -87,6 +87,7 @@ static char* subCl[32][32]={
 };
 static PCIDevice pciDev[256];
 static u64 devI=0;
+
 char* pciGetVendor(u32 vendor) {
     switch(vendor) {
         case 0x8086: return "Intel Corporation";
@@ -96,6 +97,7 @@ char* pciGetVendor(u32 vendor) {
     }
     return "UNKNOWN";
 }
+
 u32 pciIn32(u32 bus, u32 dev, u32 func, u32 offset) {
     u32 address;
     address = (u32) (((u32)0x80000000) | (bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC));
@@ -103,18 +105,7 @@ u32 pciIn32(u32 bus, u32 dev, u32 func, u32 offset) {
     out32(CONFIG_ADDRESS, address);
     return in32(CONFIG_DATA);
 }
-void pciOut8(u32 bus, u32 dev, u32 func, u32 offset, u8 val) {
-    u32 address;
-    address = (u32) (((u32)0x80000000) | (bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC));
-    out32(CONFIG_ADDRESS, address);
-    out8(CONFIG_DATA,    val);
-}
-void pciOut32(u32 bus, u32 dev, u32 func, u32 offset, u32 val) {
-    u32 address;
-    address = (u32) (((u32)0x80000000) | (bus << 16) | (dev << 11) | (func << 8) | (offset & 0xFC));
-    out32(CONFIG_ADDRESS, address);
-    out32(CONFIG_DATA,    val);
-}
+
 u16 pciIn16(u32 bus, u32 dev, u32 func, u32 offset) {
     /*
     u32 address;
@@ -135,7 +126,6 @@ u8 pciIn8Low(u32 bus, u32 dev, u32 func, u32 offset) {
     return (u8)(tmp & 0xFF);
 }
 void pciHandle(PCIDevice dev) {
-    /* todo : fix drivers for 64 bit */
     if(dev.Classcode==1 && dev.Subclass==1){
         /* IDE CONTROLLER */
         ideInit(dev.Bar0, dev.Bar1, dev.Bar2, dev.Bar3, dev.Bar4);
@@ -199,7 +189,6 @@ void pciEnum() {
             pciCheckDevice(bus, dev);
         }
     }
-    printf(INFO,"FOUND %d PCI DEVICES\n", devI+1);
 }
 void pciInit() {
     pciEnum();
