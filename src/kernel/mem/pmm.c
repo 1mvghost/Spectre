@@ -39,7 +39,7 @@ u64* pmmAlloc(u64 l){
         pmmSet(p);
         p+=PAGE_SIZE;
     }
-    debug("pmm: alloc %x\n",addr);
+    //debug("pmm: alloc %x\n",addr);
 
     return addr;
 }

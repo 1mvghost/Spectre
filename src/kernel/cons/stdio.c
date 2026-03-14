@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <font.h>
 #include <fb.h>
+#include <debug.h>
 
 static u64 curX=0;
 static u64 curY=0;
@@ -152,6 +153,7 @@ void printf(int id, char* fmt, ...) {
     for(int i = 0; i < 1024; i++) {
         if(!buf[i]) break;
         putc(buf[i]);
+        debugPutc(buf[i]);
     }
 
     va_end(va);
