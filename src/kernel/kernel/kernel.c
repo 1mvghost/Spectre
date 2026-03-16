@@ -14,6 +14,7 @@
 #include <ahci.h>
 #include <debug.h>
 #include <mmap.h>
+#include <alloc.h>
 
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -104,6 +105,17 @@ void test() {
       printf(0,"%c",buf[i]);
    }
    printf(0,"hi!\n");
+#endif
+//#define ALLOC_TEST
+#ifdef ALLOC_TEST
+   void* t[4096];
+   for(int i = 0; i < 4096; i++) {
+      t[i]=spcalloc(4096);
+   }
+   for(int i = 0; i < 4096; i++) {
+      spfree(t[i]);
+   }
+   spdmp();
 #endif
 }
 
