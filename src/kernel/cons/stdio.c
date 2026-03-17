@@ -9,9 +9,10 @@ static u64 curY=0;
 
 void scroll(){
     /* terrible scroll */
-    memmove(fbGetAddr(), fbGetAddr()+(fbResX()*16), (fbResX()*16)*47);
-    memset(fbGetAddr()+((fbResX()*16)*47), 0, fbResX()*16);
-    curY=768-16;
+    u64 l = (fbResX()*16)*((fbResY()/16)-1);
+    memmove(fbGetAddr(), fbGetAddr()+(fbResX()*16), l);
+    memset(fbGetAddr()+l, 0, fbResX()*16);
+    curY=fbResY()-16;
     curX=0;
 }
 
