@@ -1,25 +1,10 @@
-/* SpectreAlloc 1.0 */
-
-/* platform */
-//#define WIN
-//#define LINUX
-
 #include <debug.h>
 #include <util.h>
 #include <pmm.h>
 #include <vmm.h>
-#ifdef WIN
-	#include <windows.h>
-
-#endif
-#ifdef LINUX
-	#include <sys/mman.h>
-#endif
-
-#define DEBUG
+#include <alloc.h>
 
 #define ALIGN		16
-#define PAGE_SIZE 	4096
 
 #define REG_FREE 	0x0
 #define REG_ALLOC	0x1
@@ -32,43 +17,12 @@ struct HeapChunk {
 };
 static struct HeapChunk *hp = 	0;
 
-/* request pages for the heap */
-void* spallocMmap(size_t pages) {
-	void *m = 0;
-	u64 size = pages * PAGE_SIZE;
-	#ifdef LINUX
-		m = mmap(NULL,size,PROT_WRITE | PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS,-1,0);
-		if(!m) return NULL;
-	#endif
-	#ifdef WIN
-		m = VirtualAlloc(NULL,size,MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-		if(!m) return NULL;
-	#endif
-    m = VIRT(pmmAlloc(pages));
-	return m;
-}
-/* give back pages from the heap */
-void spallocMunmap(void* p, size_t pages) {
-	u64 size = pages * PAGE_SIZE;
-	bool suc=0;
-	#ifdef LINUX
-		suc = (munmap(p, size)!=-1);
-	#endif
-	#ifdef WIN
-		suc = VirtualFree(p,0,MEM_FREE);
-	#endif
-	#ifdef DEBUG
-		if(!suc) debug("spalloc: munmap failed !\n");
-	#endif
-}
 /* request pages */
 bool spallocReq(size_t pages) {
-	debug("spalloc: page request!\n");
-	void* p = spallocMmap(pages);
+	//debug("spalloc: page request!\n");
+	void* p = VIRT(pmmAlloc(pages));
 	if(!p) {
-		#ifdef DEBUG
-			debug("spalloc: cannot get a new page! probably ran out of memory!\n");
-		#endif
+		debug("spalloc: cannot get a new page! probably ran out of memory!\n");	
 		return 0;
 	}
 	struct HeapChunk *h = p;
@@ -221,9 +175,7 @@ free:
 
 	return;
 dfree:
-	#ifdef DEBUG
-		debug("spalloc: double free!! %x\n",addr);
-	#endif
+	debug("spalloc: double free!! %x\n",addr);
 	return;
 
 }
