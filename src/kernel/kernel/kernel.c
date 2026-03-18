@@ -14,6 +14,7 @@
 #include <ahci.h>
 #include <debug.h>
 #include <mmap.h>
+#include <alloc.h>
 
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -75,9 +76,10 @@ void panic(char* err) {
 
 void test() {
 #ifdef AHCI_TEST
-   u8* buf = VIRT(pmmAlloc(512));
+   u8* buf = calloc(512);
    ahciRead(0,0,1,buf);
    for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
+   free(buf);
    printf(0,"\n");
 #endif
 #ifdef SERIAL_TEST

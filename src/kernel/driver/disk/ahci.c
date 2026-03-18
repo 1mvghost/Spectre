@@ -152,7 +152,6 @@ void ahciCmdStop(HbaPort *port) {
     }
 } 
 void ahciRebase(int p, HbaPort *port) {
-    /* todo : use virtual alloc */
     ahciCmdStop(port);
 
     /* alloc command list */
