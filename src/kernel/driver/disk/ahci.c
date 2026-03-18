@@ -2,7 +2,7 @@
 #include <debug.h>
 #include <vmm.h>
 #include <pmm.h>
-
+#include <alloc.h>
 #define FIS_TYPE_REG_H2D          0x27
 
 #define ATA_CMD_READ_PIO          0x20
@@ -156,15 +156,13 @@ void ahciRebase(int p, HbaPort *port) {
     ahciCmdStop(port);
 
     /* alloc command list */
-    u64* cl = (u64*) pmmAlloc(1);
-    memset(VIRT(cl),0,4096);
-    port->Clb    = cl;
+    u64* cl = (u64*) calloc(4096);
+    port->Clb    = PHYS(cl);
     port->ClbUp  = 0;
 
     /* alloc fis */
-    u64* fis = (u64*) pmmAlloc(1);
-    memset(VIRT(fis),0,4096);
-    port->Fb   = fis;
+    u64* fis = (u64*) calloc(4096);
+    port->Fb   = PHYS(fis);
     port->FbUp = 0;
 
     /* alloc command table */
@@ -172,9 +170,8 @@ void ahciRebase(int p, HbaPort *port) {
     for(int i = 0; i<32; i++) {
         cmd[i].PrdtLen = 8; /* 8 ENTRIES PER CMD TABLE */
 
-        u64* ctba = (u64*) pmmAlloc(1);
-        memset(VIRT(ctba),0,4096);
-        cmd[i].CtbAddr      = ctba;
+        u64* ctba = (u64*) calloc(4096);
+        cmd[i].CtbAddr      = PHYS(ctba);
         cmd[i].CtbAddrUp    = 0;
         //printf(0,"%x\n",cmd[i].Ctba);
     }

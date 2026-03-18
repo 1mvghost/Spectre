@@ -52,7 +52,7 @@ size_t spalign(size_t size){
 	return size;
 }
 
-void* spmalloc(size_t size) {
+void* malloc(size_t size) {
 	/* the actual thing. */
 	if(!size) return 0;
 	if(size == 0) return 0;
@@ -93,7 +93,7 @@ void* spmalloc(size_t size) {
 
 	//debug("%x\n",fr);
 	/* we now have a chunk */
-	if(fr->Size==size || fr->Size-size-sizeof(struct HeapChunk) <= 0) {
+	if(fr->Size==size || fr->Size-size <= sizeof(struct HeapChunk)) {
 		fr->Type = REG_ALLOC;
 		return (void*)fr+sizeof(struct HeapChunk);
 	}
@@ -121,7 +121,7 @@ void* spmalloc(size_t size) {
 	return (void*)fr+sizeof(struct HeapChunk);
 }
 
-void spfree(void* addr) {
+void free(void* addr) {
 	if(!addr) return;
 
 	/* double free check */
@@ -179,24 +179,24 @@ dfree:
 	return;
 
 }
-void* spcalloc(size_t size) {
+void* calloc(size_t size) {
 	if(!size) return 0;
 	if(size == 0) return 0;
 	size = spalign(size);
 
-	void* m = spmalloc(size);
+	void* m = malloc(size);
 	memset(m,0,size);
 	
 	return m;
 }
 
-void* sprealloc(void* addr, size_t size) {
+void* realloc(void* addr, size_t size) {
 	if(!size) return 0;
 	if(size == 0) return 0;
 	size = spalign(size);
 
-	spfree(addr);
-	void* m = spmalloc(size);
+	free(addr);
+	void* m = malloc(size);
 
 	return m;
 
