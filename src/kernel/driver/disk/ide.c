@@ -232,8 +232,7 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
     if (lbaMode == 2 && dma == 1 && dir == 1) cmd = ATA_CMD_WRITE_DMA_EXT;
 
     ideOut8(ch,ATA_REG_COMMAND,cmd);
-
-    /* todo : fix reading / writing */
+    
     if(!dma){
         if(dir==0) {
             /* PIO READ */
