@@ -75,6 +75,14 @@ void panic(char* err) {
 }
 
 void test() {
+#ifdef IDE_TEST
+   debug("ide: test\n");
+   u8* buf = calloc(512);
+   ideRead(0,0,1,buf);
+   for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
+   free(buf);
+   printf(0,"\n");
+#endif
 #ifdef AHCI_TEST
    u8* buf = calloc(512);
    ahciRead(0,0,1,buf);

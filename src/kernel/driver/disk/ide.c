@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <kernel.h>
 #include <vmm.h>
+#include <alloc.h>
 
 #define ATA_REG_DATA		      0x00
 #define ATA_REG_ERROR		      0x01
@@ -78,7 +79,8 @@ struct {
     u8  Model[41];
 } dev[4];
 
-static u8 buf[2048] = {0};
+//static u8 buf[2048] = {0};
+static u8* buf;
 volatile static bool irqInvoked=0;
 
 void ideSleep(){
@@ -89,10 +91,10 @@ u8 ideIn8(u8 ch, u8 reg) {
     if(reg > 0x07 && reg < 0x0C) {
         ideOut8(ch,ATA_REG_CONTROL, 0x80 | channels[ch].NieN);
     }
-    if     (reg < 0x08) res = in8(channels[ch].Base + reg - 0x00);
-    else if(reg < 0x0C) res = in8(channels[ch].Base + reg - 0x06);
-    else if(reg < 0x0E) res = in8(channels[ch].Ctrl + reg - 0x0C);
-    else if(reg < 0x16) res = in8(channels[ch].BMIde + reg - 0x0E);
+    if     (reg < 0x08) res = in8(channels[ch].Base + reg - (u8)0x00);
+    else if(reg < 0x0C) res = in8(channels[ch].Base + reg - (u8)0x06);
+    else if(reg < 0x0E) res = in8(channels[ch].Ctrl + reg - (u8)0x0C);
+    else if(reg < 0x16) res = in8(channels[ch].BMIde + reg - (u8)0x0E);
 
     if(reg > 0x07 && reg < 0x0C) {
         ideOut8(ch,ATA_REG_CONTROL,channels[ch].NieN);
@@ -145,19 +147,20 @@ u8 idePoll(u8 ch, bool adv) {
     return 0;
 }
 
-u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
-    u8 lbaMode; /* 0:chs, 1:lba28, 2:lba48 */
-    bool dma = 0;
-    u8 cmd;
-    u8 lbaIo[6];
+u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
+    u8 lbaMode  = 0; /* 0:chs, 1:lba28, 2:lba48 */
+    bool dma    = 0;
+    u8 cmd      = 0;
+    u8* lbaIo   = calloc(6);
     
     u8 ch =     (u8)dev[disk].Channel;
     u8 slave =  (u8)dev[disk].Drive;
-    u8 bus =    (u8)channels[ch].Base;
+    u16 bus =   channels[ch].Base;
     
     u32 words = 256;
-    u16 i;
-    u8 head, err;
+    u16 i = 0;
+    u8 head = 0;
+    u8 err = 0;
 
     ideOut8(ch, ATA_REG_CONTROL, channels[ch].NieN = (irqInvoked = 0x0)+0x02);
 
@@ -181,7 +184,8 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
         lbaIo[5] = 0;
         head     = (lba & 0xF000000) >> 24;
     } else {
-        u16 cyl,sect;
+        u16 cyl = 0;
+        u16 sect = 0;
         lbaMode  = 0;
         sect     = (lba%63)+1;
         cyl      = (lba+1-sect)/(16*63);
@@ -193,26 +197,26 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
         lbaIo[5] = 0;
         head     = (lba+1-sect)%(16*63)/(63);
     }
-    //printf(INFO,"Mode is %d\n", lbaMode);
+
     ideWaitBsy(ch);
 
     if(lbaMode==0) {
-        ideOut8(ch,ATA_REG_HDDEVSEL,0xA0 | (slave<<4) | head);
+        ideOut8(ch,ATA_REG_HDDEVSEL,(u8)(0xA0 | (slave<<4) | head));
     } else {
-        ideOut8(ch,ATA_REG_HDDEVSEL,0xE0 | (slave<<4) | head);
+        ideOut8(ch,ATA_REG_HDDEVSEL,(u8)(0xE0 | (slave<<4) | head));
     }
 
     /* WRITE PARAMETERS */
     if(lbaMode==2) {
-        ideOut8(ch,ATA_REG_SECCOUNT1,   0);
-        ideOut8(ch,ATA_REG_LBA3,        lbaIo[3]);
-        ideOut8(ch,ATA_REG_LBA4,        lbaIo[4]);
-        ideOut8(ch,ATA_REG_LBA5,        lbaIo[5]);
+        ideOut8(ch, ATA_REG_SECCOUNT1,   0);
+        ideOut8(ch, ATA_REG_LBA3,        lbaIo[3]);
+        ideOut8(ch, ATA_REG_LBA4,        lbaIo[4]);
+        ideOut8(ch, ATA_REG_LBA5,        lbaIo[5]);
     }
-    ideOut8(ch,ATA_REG_SECCOUNT0,sectAmount);
-    ideOut8(ch,ATA_REG_LBA0,     lbaIo[0]);
-    ideOut8(ch,ATA_REG_LBA1,     lbaIo[1]);
-    ideOut8(ch,ATA_REG_LBA2,     lbaIo[2]);
+    ideOut8(ch, ATA_REG_SECCOUNT0,(u8)sectAmount);
+    ideOut8(ch, ATA_REG_LBA0,     lbaIo[0]);
+    ideOut8(ch, ATA_REG_LBA1,     lbaIo[1]);
+    ideOut8(ch, ATA_REG_LBA2,     lbaIo[2]);
 
     if (lbaMode == 0 && dma == 0 && dir == 0) cmd = ATA_CMD_READ_PIO;
     if (lbaMode == 1 && dma == 0 && dir == 0) cmd = ATA_CMD_READ_PIO;   
@@ -230,8 +234,6 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
     ideOut8(ch,ATA_REG_COMMAND,cmd);
 
     /* todo : fix reading / writing */
-    u64 bufAddr = 0xffffffff70000000;
-    vmmMap(bufAddr,PHYS(buf),((sectAmount*512)/4096)+1,PTE_WRITABLE);
     if(!dma){
         if(dir==0) {
             /* PIO READ */
@@ -240,14 +242,14 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
                 if(err){
                     panic("IDE DEVICE FAULT\n");
                 }
-                asm("rep insw" : : "c"(words), "d"(bus), "D"(bufAddr));
-                bufAddr += (words*2);
+                asm("rep insw" : : "c"(words), "d"(bus), "D"(buf));
+                buf += (words*2);
             }
         } else {
             for(i = 0; i<sectAmount; i++) {
                 idePoll(ch,0);
-                asm("rep outsw" : : "c"(words), "d"(bus), "S"(bufAddr));
-                bufAddr += (words*2);
+                asm("rep outsw" : : "c"(words), "d"(bus), "S"(buf));
+                buf += (words*2);
             }
             ideOut8(ch,ATA_REG_COMMAND,(char[]){
                 ATA_CMD_CACHE_FLUSH,
@@ -257,11 +259,14 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u64 buf) {
             }[lbaMode]);
             idePoll(ch,0);
         }
+    } else {
+        panic("UNSUPPORTED!\n");
     }
-    vmmUnmap(0xffffffff70000000,((sectAmount*512)/4096)+1);
+    free(lbaIo);
     return 0;
 }
-void ideRead(u8 disk, u8 sectAmount, u32 lba, u64 buf){
+
+void ideRead(u8 disk, u32 lba, u8 sectAmount, u16* buf){
     if(disk>3 || !dev[disk].Reserved)                                     panic("TRYING TO READ FROM A NONEXISTENT DRIVE\n");
     else if(((lba + sectAmount) > dev[disk].Size) && dev[disk].Type == 0) panic("READING TO INVALID POSITION\n");
     else {
@@ -335,7 +340,7 @@ void ideEnum() {
     }
 }
 void ideInit(u32 bar0, u32 bar1, u32 bar2, u32 bar3, u32 bar4) {
-
+    buf = calloc(2048);
     channels[0].Base  = (bar0 & 0xFFFFFFFC) + 0x1F0*(!bar0);
 	channels[0].Ctrl  = (bar1 & 0xFFFFFFFC) + 0x3F4*(!bar1);
 	channels[1].Base  = (bar2 & 0xFFFFFFFC) + 0x170*(!bar2);
