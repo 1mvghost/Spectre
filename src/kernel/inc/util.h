@@ -131,8 +131,28 @@ static inline int memcmp(void* a, void* b, int cnt) {
 
     return (*((u8*)a) - *((u8*)b));
 }
-static inline void cpuid(int code, u32 *a, u32 *d) {
-    asm volatile("cpuid":"=a"(*a),"=d"(*d):"a"(code):"ecx","ebx");
+static inline void wrmsr(u64 msr, u64 value)
+{
+    u32 low = value & 0xFFFFFFFF;
+    u32 high = value >> 32;
+    asm volatile (
+        "wrmsr"
+        :
+        : "c"(msr), "a"(low), "d"(high)
+    );
+}
+static inline u64 rdmsr(u64 msr)
+{
+    u32 low, high;
+    asm volatile (
+        "rdmsr"
+        : "=a"(low), "=d"(high)
+        : "c"(msr)
+    );
+	return ((u64)high << 32) | low;
+}
+static inline void cpuid(u32 *a, u32 *b, u32 *c, u32 *d) {
+    asm volatile("cpuid":"=b"(*b),"=c"(*c),"=d"(*d):"a"(*a));
 }
 static inline void invlpg(u64 addr) {
     asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
