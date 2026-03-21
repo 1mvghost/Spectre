@@ -1,6 +1,5 @@
 # * SPECTRE *
-Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/limine-bootloader/limine) for booting.
-
+Spectre (the name is not to be confused with the [Spectre](https://en.wikipedia.org/wiki/Spectre_(security_vulnerability) vulnerability) is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/limine-bootloader/limine) for booting.
 # * FEATURES *
 * AHCI <br/>
 * ACPI <br/>
