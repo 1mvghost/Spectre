@@ -49,3 +49,8 @@ void gdtInit() {
     gdtLoad(&gdtr);
     segReload(); /* change code to 0x08 and data to 0x10 */
 }
+
+void gdtMCpuInit() {
+    gdtLoad(&gdtr);
+    segReload(); /* change code to 0x08 and data to 0x10 */
+}

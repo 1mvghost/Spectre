@@ -1,6 +1,6 @@
 #include <debug.h>
 #include <stdarg.h>
-
+#include <mem.h>
 #define COM1 0x3F8
 
 int debugEmpty() {
@@ -11,7 +11,10 @@ void debugPutc(char c) {
 
     out8(COM1,c);
 }
+
+int debugSplock;
 void debug(char* fmt, ...) {
+    mSpinlockAcquire(&debugSplock);
     va_list va;
     va_start(va,fmt);
 
@@ -25,6 +28,8 @@ void debug(char* fmt, ...) {
     }
 
     va_end(va);
+
+    mSpinlockDrop(&debugSplock);
 }
 
 void debugInit() {

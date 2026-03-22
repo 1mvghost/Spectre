@@ -39,3 +39,6 @@ void idtInit() {
     
     idtLoad(&idtr);
 }
+void idtMCpuInit() {
+    idtLoad(&idtr);
+}

@@ -2,8 +2,10 @@
 #include <stdarg.h>
 #include <font.h>
 #include <fb.h>
+#include <mem.h>
 #include <debug.h>
 
+static int finished=0;
 static u64 curX=0;
 static u64 curY=0;
 
@@ -131,6 +133,7 @@ void sprintf(u8* buf, char *fmt, ...) {
     va_end(va);
 }
 void printf(int id, char* fmt, ...) {
+    mSpinlockAcquire(&finished);
     switch(id) {
         case 0:
             break;
@@ -158,4 +161,6 @@ void printf(int id, char* fmt, ...) {
     }
 
     va_end(va);
+
+    mSpinlockDrop(&finished);
 }

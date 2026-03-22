@@ -96,7 +96,7 @@ static FADT *fadt;
 static int SLP_TYPa;
 static int SLP_TYPb;
 
-void acpiFadt(FADT *fadt) {
+void acpiFadt() {
    if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
       char *s5 = (char*) VIRT(fadt->Dsdt+36);
       int *len = VIRT((fadt->Dsdt+1)-36);
@@ -121,7 +121,7 @@ void acpiFadt(FADT *fadt) {
 }
 
 
-void acpiRsdt(RSDT* rsdt) {
+void acpiRsdt() {
    for(int i = 0; i < (rsdt->h.length - sizeof(rsdt->h)) / 4; i++) {
       
       u64 a = (u64)VIRT(rsdt->sdtPtr[i]);
@@ -129,7 +129,7 @@ void acpiRsdt(RSDT* rsdt) {
       debug("acpi: FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
       if(!memcmp(h->signature, "FACP", 4)) {
          fadt = (FADT*) a;
-         acpiFadt(fadt);
+         acpiFadt();
       }
    }
 }
@@ -150,7 +150,8 @@ void acpiInit(u64 rsdpAddr){
       return;
    }
    rsdp = (RSDP*) rsdpAddr;
+   rsdt = (RSDT*) VIRT(rsdp->rsdt);
    debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
    debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);
-   acpiRsdt(VIRT(rsdp->rsdt));
+   acpiRsdt();
 }

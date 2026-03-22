@@ -3,7 +3,7 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <alloc.h>
-
+#include <mem.h>
 #define ALIGN		16
 
 #define REG_FREE 	0x0
@@ -16,13 +16,19 @@ struct HeapChunk {
 	struct HeapChunk  *Nxt;
 };
 static struct HeapChunk *hp = 	0;
+static int reqSplock = 0;
+static int allocSplock = 0;
+static int freeSplock = 0;
 
 /* request pages */
 bool spallocReq(size_t pages) {
 	//debug("spalloc: page request!\n");
+
+	mSpinlockAcquire(&reqSplock);
 	void* p = VIRT(pmmAlloc(pages));
 	if(!p) {
 		debug("spalloc: cannot get a new page! probably ran out of memory!\n");	
+		mSpinlockDrop(&reqSplock);
 		return 0;
 	}
 	struct HeapChunk *h = p;
@@ -43,6 +49,7 @@ bool spallocReq(size_t pages) {
 		cur->Nxt = p;
 		cur->Nxt->Prev = cur;
 	}
+	mSpinlockDrop(&reqSplock);
 	return 1;
 }
 size_t spalign(size_t size){
@@ -56,6 +63,9 @@ void* malloc(size_t size) {
 	/* the actual thing. */
 	if(!size) return 0;
 	if(size == 0) return 0;
+
+	mSpinlockAcquire(&allocSplock);
+
 	size = spalign(size);
 
 	size_t pages = ((size+sizeof(struct HeapChunk)) / PAGE_SIZE);
@@ -67,7 +77,10 @@ void* malloc(size_t size) {
 
 	if(!hp) {
 		/* alloc the heap if didnt already */
-		if(!spallocReq(pages)) return 0;
+		if(!spallocReq(pages)) {
+			mSpinlockDrop(&allocSplock);
+			return 0;
+		}
 	}
 	struct HeapChunk *cur = hp;
 
@@ -82,6 +95,7 @@ void* malloc(size_t size) {
 	if(!fr) {
 		/* didnt find a heap chunk big enough ... */
 		if(!spallocReq(pages)) {
+			mSpinlockDrop(&allocSplock);
 			return 0;
 		}
 		struct HeapChunk *l = hp;
@@ -95,6 +109,7 @@ void* malloc(size_t size) {
 	/* we now have a chunk */
 	if(fr->Size==size || fr->Size-size <= sizeof(struct HeapChunk)) {
 		fr->Type = REG_ALLOC;
+		mSpinlockDrop(&allocSplock);
 		return (void*)fr+sizeof(struct HeapChunk);
 	}
 
@@ -117,13 +132,15 @@ void* malloc(size_t size) {
 	fr->Size 		= size;
 	fr->Type 		= REG_ALLOC;
 
-
+	mSpinlockDrop(&allocSplock);
 	return (void*)fr+sizeof(struct HeapChunk);
 }
 
 void free(void* addr) {
 	if(!addr) return;
+	if(addr<sizeof(struct HeapChunk)) return;
 
+	mSpinlockAcquire(&freeSplock);
 	/* double free check */
 	struct HeapChunk *ch = addr-sizeof(struct HeapChunk);
 
@@ -172,10 +189,12 @@ free:
 		}
 		memset(nxt,0,sizeof(struct HeapChunk));
 	}
+	mSpinlockDrop(&freeSplock);
 
 	return;
 dfree:
 	debug("spalloc: double free!! %x\n",addr);
+	mSpinlockDrop(&freeSplock);
 	return;
 
 }
@@ -202,7 +221,9 @@ void* realloc(void* addr, size_t size) {
 
 }
 
-void spdmp() {
+int splockdmp = 0;
+void spdmp() {	
+	mSpinlockAcquire(&splockdmp);
 	int m=0;
 	struct HeapChunk *cur = hp;
 	while(cur) {
@@ -212,4 +233,5 @@ void spdmp() {
 	}
 	
 	debug("--- %d\n",m);
+	mSpinlockDrop(&splockdmp);
 }

@@ -15,6 +15,8 @@
 #include <debug.h>
 #include <mmap.h>
 #include <alloc.h>
+#include <mp.h>
+#include <mem.h>
 
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -46,6 +48,12 @@ static volatile struct limine_module_request modRequest = {
     .id = LIMINE_MODULE_REQUEST_ID,
     .revision = 4
 };
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_mp_request mpRequest = {
+    .id = LIMINE_MP_REQUEST_ID,
+    .revision = 4
+};
+
 
 
 __attribute__((used, section(".limine_requests_start")))
@@ -54,14 +62,13 @@ static volatile u64 limine_requests_start_marker[] = LIMINE_REQUESTS_START_MARKE
 __attribute__((used, section(".limine_requests_end")))
 static volatile u64 limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARKER;
 
-
-struct Stacktrace{
-   struct Stacktrace* rbp;
-   u64                rip;
-};
-
 void panic(char* err) {
+   u32 eax=1,ebx,ecx,edx;
+   cpuid(&eax,&ebx,&ecx,&edx);
+   u32 cpuId = (ebx>>24) & 0xFF; 
+
    printf(PANIC,"%s",err);
+   printf(PANIC,"CPU: %d\n",cpuId);
    printf(PANIC,"--- Kernel Call Trace ---\n");
    struct Stacktrace *stk;
    asm("movq %%rbp,%0" : "=r"(stk) ::);
@@ -71,6 +78,7 @@ void panic(char* err) {
       printf(PANIC,"%x\n",stk->rip);
       stk = stk->rbp;
    }
+   
    asm("cli"); asm("hlt");
 }
 
@@ -135,6 +143,7 @@ void main(){
    }
    struct limine_framebuffer *fb = framebufferRequest.response->framebuffers[0];
    struct limine_memmap_entry* mMap = mMapRequest.response->entries[0];
+   struct limine_mp_response *mp = mpRequest.response;
 
    u64 fbAddr =   (u64)fb->address;
    u64 fbPitch =  (u64)fb->pitch;
@@ -163,9 +172,10 @@ void main(){
    vmmInit();
    pciInit();
    acpiInit(acpiAddr);
-    
-   test();
+   mpInit(mp);
    
+   test();
+
    keypress();
    acpiShutdown();
 

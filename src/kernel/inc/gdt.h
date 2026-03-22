@@ -2,5 +2,5 @@
 #define GDT_H
 #include <util.h>
 void gdtInit();
-
+void gdtMCpuInit();
 #endif
