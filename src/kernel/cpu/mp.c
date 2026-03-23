@@ -20,7 +20,7 @@
 void mpEntry(struct limine_mp_info *mp) {
     gdtMCpuInit();
     idtMCpuInit();
-    debug("cpu%d: ONLINE\n",mp->processor_id);
+    debug("cpu%d: ONLINE\n",mp->processor_id);   
     asm("cli");asm("hlt");
 }
 

@@ -14,8 +14,8 @@
 #define	PTE_LV4_GLOBAL		0x200		//0000000000000000000001000000000
 #define PTE_FRAME			0x7FFFF000 	//0000000000000000000000000000000000000000000000000000111111111111
 
-#define VIRT(p)             ((u64)p|0xffff800000000000)
-#define PHYS(p)             ((u64)p-0xffff800000000000)
+#define VIRT(p)             (void*)((u64)p|0xffff800000000000)
+#define PHYS(p)             (void*)((u64)p-0xffff800000000000)
 
 #include <util.h>
 

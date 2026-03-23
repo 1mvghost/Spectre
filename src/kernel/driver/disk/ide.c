@@ -3,6 +3,7 @@
 #include <kernel.h>
 #include <vmm.h>
 #include <alloc.h>
+#include <debug.h>
 
 #define ATA_REG_DATA		      0x00
 #define ATA_REG_ERROR		      0x01
@@ -117,7 +118,7 @@ void ideOut8(u8 ch, u8 reg, u8 data) {
         ideOut8(ch,ATA_REG_CONTROL,channels[ch].NieN);
     }
 }
-void ideInBuf(u8 ch, u8 reg, u64 buf, u64 q) {
+void ideInBuf(u8 ch, u8 reg, u32* buf, u64 q) {
     if(reg > 0x07 && reg < 0x0C) {
         ideOut8(ch,ATA_REG_CONTROL, 0x80 | channels[ch].NieN);
     }
@@ -265,14 +266,18 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
     return 0;
 }
 
-void ideRead(u8 disk, u32 lba, u8 sectAmount, u16* buf){
-    if(disk>3 || !dev[disk].Reserved)                                     panic("TRYING TO READ FROM A NONEXISTENT DRIVE\n");
-    else if(((lba + sectAmount) > dev[disk].Size) && dev[disk].Type == 0) panic("READING TO INVALID POSITION\n");
+void ideRead(u8 disk, u32 lba, u8 sectAmount, void* buf){
+    if(disk>3 || !dev[disk].Reserved)                                     { 
+        debug("ide: TRYING TO READ FROM A NONEXISTENT DRIVE\n"); return; 
+    }
+    else if(((lba + sectAmount) > dev[disk].Size) && dev[disk].Type == 0) { 
+        debug("ide: READING TO INVALID POSITION\n"); return; 
+    }
     else {
         if(dev[disk].Type == 0){
-            ideAccessAta(ATA_READ, disk, lba, sectAmount, buf);
+            ideAccessAta(ATA_READ, disk, lba, sectAmount, (u16*)buf);
         } else {
-            panic("READING FROM UNSUPPORTED DISK TYPE (for now)\n");
+            debug("ide: READING FROM UNSUPPORTED DISK TYPE (for now)\n");
         }
     }
 }
@@ -309,7 +314,7 @@ void ideEnum() {
                 ideOut8(i, ATA_REG_COMMAND, ATA_CMD_IDENTIFY_PACKET);
                 ideSleep();
             }
-            ideInBuf(i,ATA_REG_DATA, (u64)buf, 128);
+            ideInBuf(i,ATA_REG_DATA, (u32*)buf, 128);
 
             dev[cnt].Reserved =     1;
             dev[cnt].Type =         type;

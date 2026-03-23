@@ -24,8 +24,8 @@ typedef volatile struct {
     u32 Vendor[4];
 } HbaPort;
 
-bool ahciRead(int p, u64 lba, u32 sectAmount, u16 *buf);
-bool ahciWrite(int p, u64 lba, u32 sectAmount, u16 *buf);
+bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf);
+bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf);
 void ahciInit(u32 bar5);
 
 #endif

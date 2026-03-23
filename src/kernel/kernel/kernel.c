@@ -17,6 +17,7 @@
 #include <alloc.h>
 #include <mp.h>
 #include <mem.h>
+#include <fb.h>
 
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -83,16 +84,19 @@ void panic(char* err) {
 }
 
 void test() {
+//#define IDE_TEST
 #ifdef IDE_TEST
-   debug("ide: test\n");
+   printf(INFO,"ide: test\n");
    u8* buf = calloc(512);
    ideRead(0,0,1,buf);
    for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
    free(buf);
    printf(0,"\n");
 #endif
+//#define AHCI_TEST
 #ifdef AHCI_TEST
-   u8* buf = calloc(512);
+   printf(INFO,"ahci: test\n");
+   buf = calloc(512);
    ahciRead(0,0,1,buf);
    for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
    free(buf);
@@ -123,6 +127,7 @@ void test() {
    }
    printf(0,"hi!\n");
 #endif
+//#define ALLOC_TEST
 #ifdef ALLOC_TEST
    void* t[4096];
    for(int i = 0; i < 830; i++) {

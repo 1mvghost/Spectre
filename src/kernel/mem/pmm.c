@@ -41,7 +41,7 @@ u64* pmmAlloc(u64 l){
     }
     //debug("pmm: alloc %x\n",addr);
 
-    return addr;
+    return (u64*)addr;
 }
 
 void pmmFree(u64 addr, u64 l) {
@@ -78,7 +78,7 @@ void pmmInit() {
 
     debug("pmm: BITMAP ADDR: %x\n",bm);
 
-    for(int i=0; i < mMapLen(i); i++) {
+    for(int i=0; i < mMapLen(); i++) {
         if(mMapGet(i).type == 0) {
             u64 b   = mMapGet(i).base;
             u64 len = mMapGet(i).length/PAGE_SIZE;
@@ -88,7 +88,7 @@ void pmmInit() {
             }
         }
     }
-    u64 b   = PHYS(bm);
+    u64 b   = (u64)PHYS(bm);
     u64 len = bmSize/PAGE_SIZE;
     len++; /* just to be safe */
     while(len--){

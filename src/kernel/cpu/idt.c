@@ -34,7 +34,7 @@ void idtSetDesc(u8 i, void* isr, u8 flags) {
     entry->Ist        = 0;
 }
 void idtInit() {
-    idtr.Base =  (u64)idt;
+    idtr.Base =  idt;
     idtr.Limit = sizeof(idt)-1;
     
     idtLoad(&idtr);

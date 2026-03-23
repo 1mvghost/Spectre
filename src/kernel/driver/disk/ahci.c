@@ -156,12 +156,12 @@ void ahciRebase(int p, HbaPort *port) {
 
     /* alloc command list */
     u64* cl = (u64*) calloc(4096);
-    port->Clb    = PHYS(cl);
+    port->Clb    = (u32)PHYS(cl);
     port->ClbUp  = 0;
 
     /* alloc fis */
     u64* fis = (u64*) calloc(4096);
-    port->Fb   = PHYS(fis);
+    port->Fb   = (u32)PHYS(fis);
     port->FbUp = 0;
 
     /* alloc command table */
@@ -170,7 +170,7 @@ void ahciRebase(int p, HbaPort *port) {
         cmd[i].PrdtLen = 8; /* 8 ENTRIES PER CMD TABLE */
 
         u64* ctba = (u64*) calloc(4096);
-        cmd[i].CtbAddr      = PHYS(ctba);
+        cmd[i].CtbAddr      = (u32)PHYS(ctba);
         cmd[i].CtbAddrUp    = 0;
         //printf(0,"%x\n",cmd[i].Ctba);
     }
@@ -208,7 +208,7 @@ int ahciCheckType(HbaPort *port) {
         default: return AHCI_DEV_SATA;
     }
 }
-bool ahciRead(int p, u64 lba, u32 sectAmount, u16 *buf) {
+bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf) {
     HbaPort *port = &base->Ports[p];
     port->Is = (u32) -1; /* clear interrupt bits */
     int slot = ahciCmdFindFree(port);
@@ -287,7 +287,7 @@ bool ahciRead(int p, u64 lba, u32 sectAmount, u16 *buf) {
     }
     return 1;
 }
-bool ahciWrite(int p, u64 lba, u32 sectAmount, u16 *buf) {
+bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf) {
     HbaPort *port = &base->Ports[p];
     port->Is = (u32) -1; /* clear interrupt bits */
     int slot = ahciCmdFindFree(port);
@@ -390,7 +390,7 @@ void ahciEnum() {
     }
 }
 void ahciInit(u32 bar5) {
-    vmmMap(VIRT(bar5),bar5,1,PTE_WRITABLE);
+    vmmMap((u64)VIRT(bar5),bar5,1,PTE_WRITABLE);
     base = (HbaMem*) VIRT(bar5);
     ahciEnum();
 }

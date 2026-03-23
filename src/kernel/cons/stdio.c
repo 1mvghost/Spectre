@@ -12,8 +12,8 @@ static u64 curY=0;
 void scroll(){
     /* terrible scroll */
     u64 l = (fbResX()*16)*((fbResY()/16)-1);
-    memmove(fbGetAddr(), fbGetAddr()+(fbResX()*16), l);
-    memset(fbGetAddr()+l, 0, fbResX()*16);
+    memmove((u64*)fbGetAddr(), (u64*)fbGetAddr()+(fbResX()*16), l);
+    memset((u64*)fbGetAddr()+l, 0, fbResX()*16);
     curY=fbResY()-16;
     curX=0;
 }
@@ -48,7 +48,7 @@ int sputc(u8* buf, int i, char ch) {
 int sputNum(u8* buf, int i, u64 num, int radix) {
     if(!num) {
         sputc(buf,i,'0'); 
-        return;
+        return i+1;
     }
     char nbuf[32];
     char* hex="0123456789ABCDEF";

@@ -3,16 +3,20 @@
 #include <mem.h>
 #define COM1 0x3F8
 
+int debugSplock = 0;
 int debugEmpty() {
     return in8(COM1+5) & 0x20;
 }
+
+int cSplock = 0;
 void debugPutc(char c) {
+    mSpinlockAcquire(&cSplock);
     while(debugEmpty() == 0) {}
 
     out8(COM1,c);
+    mSpinlockDrop(&cSplock);
 }
 
-int debugSplock;
 void debug(char* fmt, ...) {
     mSpinlockAcquire(&debugSplock);
     va_list va;
@@ -44,7 +48,7 @@ void debugInit() {
     out8(COM1 + 0, 0xAE); 
 
    if(in8(COM1 + 0) != 0xAE) {
-      return 1;
+      return;
    }
    out8(COM1 + 4, 0x0F);
 
