@@ -1,11 +1,11 @@
 #include <mem.h>
 
-void mSpinlockAcquire(int *l) {
+void mSpinlockAcquire(Splock *l) {
     while(atomic_flag_test_and_set_explicit(l, memory_order_acquire)) {
 
     }
 }
 
-void mSpinlockDrop(int *l) {
+void mSpinlockDrop(Splock *l) {
     atomic_flag_clear_explicit(l,memory_order_release);
 }

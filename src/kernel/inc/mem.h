@@ -3,7 +3,10 @@
 #include <stdatomic.h>
 #include <util.h>
 
-void mSpinlockAcquire(int *l);
-void mSpinlockDrop(int *l);
+/* make stuff more readable */
+typedef atomic_flag Splock;
+
+void mSpinlockAcquire(Splock *l);
+void mSpinlockDrop(Splock *l);
 
 #endif

@@ -16,9 +16,9 @@ struct HeapChunk {
 	struct HeapChunk  *Nxt;
 };
 static struct HeapChunk *hp = 	0;
-static int reqSplock = 0;
-static int allocSplock = 0;
-static int freeSplock = 0;
+static Splock reqSplock 	= 	ATOMIC_FLAG_INIT;
+static Splock allocSplock 	= 	ATOMIC_FLAG_INIT;
+static Splock freeSplock 	= 	ATOMIC_FLAG_INIT;
 
 /* request pages */
 bool spallocReq(size_t pages) {
@@ -221,7 +221,7 @@ void* realloc(void* addr, size_t size) {
 
 }
 
-int splockdmp = 0;
+Splock splockdmp = ATOMIC_FLAG_INIT;
 void spdmp() {	
 	mSpinlockAcquire(&splockdmp);
 	int m=0;

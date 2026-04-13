@@ -150,10 +150,33 @@ static inline u64 rdmsr(u64 msr)
     );
 	return ((u64)high << 32) | low;
 }
+static inline int strlen(char* s) {
+    char *p = s;
+    int res=0;
+    while(*p) {
+        res++;
+        p++;
+    }
+    return res;
+}
+
 static inline void cpuid(u32 *a, u32 *b, u32 *c, u32 *d) {
     asm volatile("cpuid":"=b"(*b),"=c"(*c),"=d"(*d):"a"(*a));
 }
 static inline void invlpg(u64* addr) {
     asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
+}
+
+static inline int strcmp(const char* s1, const char* s2)
+{
+    while(*s1 && (*s1 == *s2))
+    {
+        s1++;
+        s2++;
+    }
+    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+static inline char* strcpy(char* dst, char* src) {
+    memcpy(dst,src,strlen(src));
 }
 #endif

@@ -102,7 +102,7 @@ static const char *exceptions[32] = {
     "Unknown"
 };
 
-int splockk;
+Splock splockk = ATOMIC_FLAG_INIT;
 
 void isrHandler(Regs* regs) {
     mSpinlockAcquire(&splockk);

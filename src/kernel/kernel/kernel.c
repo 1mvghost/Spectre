@@ -18,6 +18,7 @@
 #include <mp.h>
 #include <mem.h>
 #include <fb.h>
+#include <vfs.h>
 
 __attribute__((used, section(".limine_requests")))
 static volatile u64 limine_base_revision[] = LIMINE_BASE_REVISION(4);
@@ -99,7 +100,7 @@ void test() {
    buf = calloc(512);
    ahciRead(0,0,1,buf);
    for(int i = 0; i < 512; i++) printf(0,"%c",buf[i]);
-   free(buf);
+   free(buf); 
    printf(0,"\n");
 #endif
 #ifdef SERIAL_TEST
@@ -139,6 +140,11 @@ void test() {
    }
    spdmp();
 #endif
+#define VFS_TEST
+   FsFd *fd = vfsOpen("/dev/dbg",0);
+   vfsWrite(fd,"SERIAL TEST",5+6);
+#ifdef VFS_TEST
+#endif
 }
 
 void main(){
@@ -175,12 +181,13 @@ void main(){
    mMapInit(mMapRequest.response);
    pmmInit();
    vmmInit();
+   vfsInit();
    pciInit();
    acpiInit(acpiAddr);
    mpInit(mp);
    
    test();
-
+   
    keypress();
    acpiShutdown();
 

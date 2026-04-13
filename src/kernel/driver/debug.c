@@ -3,12 +3,12 @@
 #include <mem.h>
 #define COM1 0x3F8
 
-int debugSplock = 0;
+Splock debugSplock = ATOMIC_FLAG_INIT;
 int debugEmpty() {
     return in8(COM1+5) & 0x20;
 }
 
-int cSplock = 0;
+Splock cSplock = ATOMIC_FLAG_INIT;
 void debugPutc(char c) {
     mSpinlockAcquire(&cSplock);
     while(debugEmpty() == 0) {}

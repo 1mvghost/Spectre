@@ -5,7 +5,7 @@
 #include <mem.h>
 #include <debug.h>
 
-static int finished=0;
+static Splock finished=ATOMIC_FLAG_INIT;
 static u64 curX=0;
 static u64 curY=0;
 
