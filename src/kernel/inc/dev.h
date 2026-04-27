@@ -2,5 +2,5 @@
 #define DEV_H
 #include <util.h>
 #include <vfs.h>
-void devInit(FsMnt *mnt);
+void devInit(struct FsMnt *mnt);
 #endif

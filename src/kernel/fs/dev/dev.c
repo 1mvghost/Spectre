@@ -2,69 +2,39 @@
 #include <dev.h>
 #include <debug.h>
 #include <vfs.h>
-static FsDir *root;
 
-int devOpen(FsFd *d, u64 flags) {
+struct FsNode* dirdebug;
+struct FsNode* devLookup(struct FsNode *n, char* name) {
+    if(!strcmp(name, "dbg")) {
+        return dirdebug;
+    }
+    return 0;
+}
+
+int devOpen(struct FsNode *n, u64 flags) {
     return 1;
 }
-int devRead(FsFd *d, u8* buf, u64 size) {
-}
-int devWrite(FsFd *d, u8* buf, u64 size) {
-    if(d->Inode && !strcmp(d->Inode->FsData,"dbg")) {
-        for(int i = 0;i<size;i++) {
+int devWrite(struct FsFd *fd, u8* buf, u64 size) {
+    if(fd->Inode == dirdebug) {
+        for(int i = 0; i<size; i++) {
             debugPutc(buf[i]);
         }
+        return size;
     }
-    return 1;
+    return 0;
 }
-int devMkDir(FsDir *dir, char* name) {
-    FsDir  *d = vfsDirAlloc(name);
-    FsNode *i = d->Inode;
-    d->Mnt    = root->Mnt;
-    
-    i->Type   = TYPE_FILE;
-    i->Ops    = dir->Inode->Ops;
-    i->Mnt    = root->Mnt;
 
-    /* small hack */
-    i->FsData = malloc(64);
-    strcpy(i->FsData,name);
-
-    /* add to root */
-    if(!dir->Ch) {
-        dir->Ch=d;
-        return 1;
-    }
-    FsDir *c = dir->Ch;
-    while(c&&c->Nxt){
-        c=c->Nxt;
-    }
-
-    c->Nxt = d;
-    return 1;
-
-}
-FsHandler h = {
+struct FsHandler devHandler = {
+    .Lookup = devLookup,
     .Open   = devOpen,
-    .Read   = devRead,
-    .Write  = devWrite,
-    .MkDir  = devMkDir 
+    .Write  = devWrite
 };
-void devInit(FsMnt *mnt) {
-    FsDir *r = vfsLookup(mnt->Path);
-    FsNode *i = calloc(sizeof(FsNode));
-    r->Inode = i;
-    r->Mnt   = mnt;
-    i->Type  = TYPE_DIR;
-    i->Mnt   = mnt;
-
-    i->Ops   = &h;
-
-    root=r;
-    mnt->Root = r;
-
-    devMkDir(root,"dbg");
-    //devMkDir(root,"testt");
-
+void devInit(struct FsMnt *mnt) {
     debug("devfs: mnt is %s\n",mnt->Path);
+
+    mnt->Root = &mnt->Inode[vfsAlloc("",mnt,TYPE_DIR)];
+    mnt->Root->Ops = &devHandler;
+
+    dirdebug = &mnt->Inode[vfsAlloc("dbg",mnt,TYPE_FILE)];
+    dirdebug->Ops = &devHandler;
 }

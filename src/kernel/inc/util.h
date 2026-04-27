@@ -169,12 +169,14 @@ static inline void invlpg(u64* addr) {
 
 static inline int strcmp(const char* s1, const char* s2)
 {
-    while(*s1 && (*s1 == *s2))
+    char* ss1 = s1;
+    char* ss2 = s2;
+    while(*ss1 && (*ss1 == *ss2))
     {
-        s1++;
-        s2++;
+        ss1++;
+        ss2++;
     }
-    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+    return *(const unsigned char*)ss1 - *(const unsigned char*)ss2;
 }
 static inline char* strcpy(char* dst, char* src) {
     memcpy(dst,src,strlen(src));

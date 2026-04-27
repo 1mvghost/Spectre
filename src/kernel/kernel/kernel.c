@@ -141,8 +141,14 @@ void test() {
    spdmp();
 #endif
 #define VFS_TEST
-   FsFd *fd = vfsOpen("/dev/dbg",0);
-   vfsWrite(fd,"SERIAL TEST",5+6);
+   struct FsFd *fd = vfsOpen("/dev/dbg", 0x67);
+   if(!fd) {
+      return;
+   }
+   
+   char* buf = "SERIAL TEST\n";
+   debug("vfs: wrote %d bytes",vfsWrite(fd,buf,strlen(buf)));
+
 #ifdef VFS_TEST
 #endif
 }

@@ -2,10 +2,10 @@
 BUILD?=/build
 INC?=/inc
 ISO?=/iso
-SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util $(BUILD)/fs $(BUILD)/fs/dev $(BUILD)/fs/tmp
+SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util $(BUILD)/fs $(BUILD)/fs/dev $(BUILD)/fs/tmp $(BUILD)/fs/vfs
 #Tools
 GCC=gcc #/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
-GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic
+GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic -fno-stack-protector
 LD=ld #/usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 NASM=nasm
 

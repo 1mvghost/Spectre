@@ -2,25 +2,26 @@
 #include <dev.h>
 #include <debug.h>
 #include <vfs.h>
+#include <util.h>
+#include <tmp.h>
 
-static FsDir *root;
+struct FsNode* dirdev;
 
-void tmpInit(FsMnt *mnt) {
-    
-    FsDir *d   = vfsLookup(mnt->Path);
-    FsNode *i  = malloc(sizeof(FsNode));
-    d->Mnt     = mnt;
-    d->Inode   = i;
+struct FsNode* tmpLookup(struct FsNode *n, char* name) {
+    if(!strcmp(name, "dev")) {
+        return dirdev;
+    }
+    return 0;
+}
 
-    FsDir *dev = vfsDirAlloc("dev");
-    dev->Mnt = d->Mnt;
-    FsNode *devI = dev->Inode;
-    devI->Mnt    = mnt;
-    devI->Type   = TYPE_DIR;
-
-    d->Ch=dev;
-
-    root=d;
-
+struct FsHandler tmpHandler = {
+    .Lookup = tmpLookup,
+};
+void tmpInit(struct FsMnt *mnt) {
     debug("tmpfs: mnt is %s\n",mnt->Path);
+
+    mnt->Root = &mnt->Inode[vfsAlloc("",mnt,TYPE_DIR)];
+    mnt->Root->Ops = &tmpHandler;
+
+    dirdev = &mnt->Inode[vfsAlloc("dev",mnt,TYPE_DIR)];
 }
