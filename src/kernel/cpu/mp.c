@@ -20,13 +20,15 @@
 void mpEntry(struct limine_mp_info *mp) {
     gdtMCpuInit();
     idtMCpuInit();
+
     debug("cpu%d: ONLINE\n",mp->processor_id);   
-    asm("cli");asm("hlt");
+    asm("cli"); asm("hlt");
 }
 
 void mpInit(struct limine_mp_response *m) {
     debug("mp: found %d cpus\n",m->cpu_count);
-    for(int i = 0; i<m->cpu_count; i++) {
+    
+    for(u64 i = 0; i<m->cpu_count; i++) {
         atomic_store(&m->cpus[i]->goto_address,&mpEntry);    
     }
 }

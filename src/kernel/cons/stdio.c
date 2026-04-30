@@ -102,7 +102,7 @@ void vsprintf(u8* buf, char *fmt, va_list va) {
                 switch (*fmt){
                     case 'c':
                         //putc(va_arg(va,char))
-                        i=sputc(buf, i, (char)va_arg(va,char*));
+                        i=sputc(buf, i, (char)va_arg(va,int));
                         break;
                     case 's':
                         i=sputs(buf, i, va_arg(va,char*));

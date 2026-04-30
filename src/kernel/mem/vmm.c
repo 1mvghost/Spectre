@@ -20,6 +20,13 @@ static PageTable* p4;
 
 void vmmLoad(u64 *p4);
 
+u64 vmmVirtToPhys(u64 virt) {
+    PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
+    PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
+    PageTable* p1 = (PageTable*) VIRT(p2->Ent[P2(virt)] & PAGE_ADDR_MASK);
+
+    return (u64)(p1->Ent[P1(virt)] & PAGE_ADDR_MASK) + OFFSET(virt);
+}
 void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
     while (n--) {
         if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {

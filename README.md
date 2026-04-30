@@ -1,7 +1,7 @@
 # * SPECTRE *
 Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/limine-bootloader/limine) for booting.
 # * FEATURES *
-* AHCI <br/>
+* AHCI & IDE Disk Drivers <br/>
 * ACPI <br/>
 * PMM <br/>
 * Basic Heap Allocator <br/>

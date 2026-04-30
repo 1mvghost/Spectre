@@ -1,12 +1,14 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-
 typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long int u64;
 typedef u64 size_t;
+
+#define U64_LOW(addr) (addr & 0xffffffff)
+#define U64_HIGH(addr)(addr>>32 & 0xffffffff)
 
 #include <stdio.h>
 #include <kernel.h>
@@ -15,26 +17,6 @@ typedef u64 size_t;
 #define ERR 2
 #define PANIC 3
 
-/*
-void out8(u16 port, u8 val);
-
-void out16(u16 port, u16 val);
-
-void out32(u16 port, u32 val);
-
-u8 in8(u16 port);
-
-u16 in16(u16 port);
-
-u32 in32(u16 port);
-void ins32(u16 port, u32 *buf, int q);
-void memset(void *dst, u8 value, int n);
-void* memcpy(void *dst, void *src, int n);
-void sti();
-u8 keypress();
-int memcmp(void* a, void* b, int cnt);
-void cpuid(int code, u32 *a, u32 *d);
-*/
 static inline void out8(u16 port, u8 val)
 {
     __asm__ volatile ( "outb %0, %1" : : "a"(val), "Nd"(port));
@@ -169,8 +151,8 @@ static inline void invlpg(u64* addr) {
 
 static inline int strcmp(const char* s1, const char* s2)
 {
-    char* ss1 = s1;
-    char* ss2 = s2;
+    const char* ss1 = s1;
+    const char* ss2 = s2;
     while(*ss1 && (*ss1 == *ss2))
     {
         ss1++;
@@ -178,7 +160,7 @@ static inline int strcmp(const char* s1, const char* s2)
     }
     return *(const unsigned char*)ss1 - *(const unsigned char*)ss2;
 }
-static inline char* strcpy(char* dst, char* src) {
+static inline void strcpy(char* dst, char* src) {
     memcpy(dst,src,strlen(src));
 }
 #endif

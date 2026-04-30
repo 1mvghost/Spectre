@@ -138,7 +138,7 @@ void* malloc(size_t size) {
 
 void free(void* addr) {
 	if(!addr) return;
-	if(addr<sizeof(struct HeapChunk)) return;
+	if((u64)addr < sizeof(struct HeapChunk)) return;
 
 	mSpinlockAcquire(&freeSplock);
 	/* double free check */

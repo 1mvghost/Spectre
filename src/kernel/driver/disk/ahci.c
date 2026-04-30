@@ -156,13 +156,15 @@ void ahciRebase(int p, HbaPort *port) {
 
     /* alloc command list */
     u64* cl = (u64*) calloc(4096);
-    port->Clb    = (u32)PHYS(cl);
-    port->ClbUp  = 0;
+    u64 clPhys = vmmVirtToPhys((u64)cl);
+    port->Clb    = U64_LOW(clPhys);
+    port->ClbUp  = U64_HIGH(clPhys);
 
     /* alloc fis */
     u64* fis = (u64*) calloc(4096);
-    port->Fb   = (u32)PHYS(fis);
-    port->FbUp = 0;
+    u64 fisPhys = vmmVirtToPhys((u64)fis);
+    port->Fb   = U64_LOW(fisPhys);
+    port->FbUp = U64_HIGH(fisPhys);
 
     /* alloc command table */
     HbaCmdHeader *cmd = (HbaCmdHeader*)VIRT(port->Clb);
@@ -170,8 +172,9 @@ void ahciRebase(int p, HbaPort *port) {
         cmd[i].PrdtLen = 8; /* 8 ENTRIES PER CMD TABLE */
 
         u64* ctba = (u64*) calloc(4096);
-        cmd[i].CtbAddr      = (u32)PHYS(ctba);
-        cmd[i].CtbAddrUp    = 0;
+        u64 ctbaPhys = vmmVirtToPhys((u64)ctba);
+        cmd[i].CtbAddr      = U64_LOW(ctbaPhys);
+        cmd[i].CtbAddrUp    = U64_HIGH(ctbaPhys);
         //printf(0,"%x\n",cmd[i].Ctba);
     }
     
@@ -224,19 +227,23 @@ bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf) {
     HbaCmdTbl *cmdTbl = (HbaCmdTbl*) VIRT(cmd->CtbAddr);
     memset(cmdTbl,0,sizeof(HbaCmdTbl) + (cmd->PrdtLen-1)*sizeof(HbaPrdtEnt)); 
 
+    u64 bufPhys = vmmVirtToPhys((u64)buf);
+
     int i;
     for(i = 0; i<cmd->PrdtLen-1; i++) {
-        cmdTbl->Ent[i].DbAddr = (u32) PHYS(buf);
-        cmdTbl->Ent[i].Dbc    = (8*1024)-1;
-        cmdTbl->Ent[i].I      = 1;
+        cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
+        cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
+        cmdTbl->Ent[i].Dbc      = (8*1024)-1;
+        cmdTbl->Ent[i].I        = 1;
         
         buf        += 4*1024;
         sectAmount -= 16;
     }
 
-    cmdTbl->Ent[i].DbAddr = (u32) PHYS(buf);
-    cmdTbl->Ent[i].Dbc    = (sectAmount*512)-1;
-    cmdTbl->Ent[i].I      = 1;
+    cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
+    cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
+    cmdTbl->Ent[i].Dbc      = (sectAmount*512)-1;
+    cmdTbl->Ent[i].I        = 1;
 
     /* setup the ACTUAL command */
     FisRegHostToDev *cmdFis = (FisRegHostToDev*) VIRT(&cmdTbl->CmdFis);
@@ -262,7 +269,7 @@ bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf) {
 
     /* edging it */
     int spin = 0;
-    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & spin < 1000000) {
+    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & (spin < 1000000)) {
         spin++;
     }
     if(spin == 1000000) {
@@ -303,19 +310,23 @@ bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf) {
     HbaCmdTbl *cmdTbl = (HbaCmdTbl*) VIRT(cmd->CtbAddr);
     memset(cmdTbl,0,sizeof(HbaCmdTbl) + (cmd->PrdtLen-1)*sizeof(HbaPrdtEnt)); 
 
+    u64 bufPhys = vmmVirtToPhys((u64)buf);
+
     int i;
     for(i = 0; i<cmd->PrdtLen-1; i++) {
-        cmdTbl->Ent[i].DbAddr = (u32) PHYS(buf);
-        cmdTbl->Ent[i].Dbc    = (8*1024)-1;
-        cmdTbl->Ent[i].I      = 1;
+        cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
+        cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
+        cmdTbl->Ent[i].Dbc      = (8*1024)-1;
+        cmdTbl->Ent[i].I        = 1;
         
         buf        += 4*1024;
         sectAmount -= 16;
     }
 
-    cmdTbl->Ent[i].DbAddr = (u32) PHYS(buf);
-    cmdTbl->Ent[i].Dbc    = (sectAmount*512)-1;
-    cmdTbl->Ent[i].I      = 1;
+    cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
+    cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
+    cmdTbl->Ent[i].Dbc      = (sectAmount*512)-1;
+    cmdTbl->Ent[i].I        = 1;
 
     /* setup the ACTUAL command */
     FisRegHostToDev *cmdFis = (FisRegHostToDev*) VIRT(&cmdTbl->CmdFis);
@@ -341,7 +352,7 @@ bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf) {
 
     /* edging */
     int spin = 0;
-    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & spin < 1000000) {
+    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & (spin < 1000000)) {
         spin++;
     }
     if(spin == 1000000) {

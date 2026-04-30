@@ -15,9 +15,9 @@ void pmmUnset(u64 addr) {
 }
 
 u64 pmmFind(u64 l) {
-    int s=0;
-    int j=0;
-    for(int i = 0; i<bmSize; i++) {
+    u64 s = 0;
+    u64 j = 0;
+    for(u64 i = 0; i<bmSize; i++) {
         if(!bm[i]) {
             s++;
         } else {

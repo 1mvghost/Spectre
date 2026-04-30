@@ -15,12 +15,12 @@ typedef struct {
    u32 oemRevision;
    u32 creatorId;
    u32 creatorRevision;
-} SDTHeader;
+} __attribute__((packed)) SDTHeader;
 
 typedef struct {
    SDTHeader h;
    u32 sdtPtr[256];
-} RSDT;
+} __attribute__((packed)) RSDT;
 
 typedef struct{
    u8 addrSpace;
@@ -28,7 +28,7 @@ typedef struct{
    u8 bitOffset;
    u8 accessSize;
    u64 addr;
-} GenericAddress;
+} __attribute__((packed)) GenericAddress;
 
 typedef struct {
    SDTHeader h;
@@ -88,7 +88,7 @@ typedef struct {
    GenericAddress X_PMTimerBlock;
    GenericAddress X_GPE0Block;
    GenericAddress X_GPE1Block;
-} FADT;
+} __attribute__((packed)) FADT;
 
 static RSDP *rsdp;
 static RSDT *rsdt;
@@ -96,12 +96,25 @@ static FADT *fadt;
 static int SLP_TYPa;
 static int SLP_TYPb;
 
+void acpiOut(GenericAddress gAddr, u8 val) {
+   if(gAddr.addrSpace == 0) {
+      if(gAddr.accessSize <= 1) *((u8*)VIRT(gAddr.addr))  = val;
+      if(gAddr.accessSize == 2) *((u16*)VIRT(gAddr.addr)) = val;
+      if(gAddr.accessSize == 3) *((u32*)VIRT(gAddr.addr)) = val;
+      if(gAddr.accessSize == 4) *((u64*)VIRT(gAddr.addr)) = val;
+   }
+   if(gAddr.addrSpace == 1) {
+      if(gAddr.accessSize <= 1) out8 ((u16)gAddr.addr, val);
+      if(gAddr.accessSize == 2) out16((u16)gAddr.addr, val);
+      if(gAddr.accessSize == 3) out32((u16)gAddr.addr, val);
+   }
+}
 void acpiFadt() {
    if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
-      char *s5 = (char*) VIRT(fadt->Dsdt+36);
-      int *len = VIRT((fadt->Dsdt+1)-36);
+      char* s5 = (char*) VIRT(fadt->Dsdt+36);
+      int* len = VIRT((fadt->Dsdt+1)-36);
       while(len-- > 0) {
-         if(!memcmp(s5, "_S5_", 4)) {
+         if(!memcmp(s5, "_S5_",3)) {
             break;
          }
          s5++;
@@ -122,7 +135,7 @@ void acpiFadt() {
 
 
 void acpiRsdt() {
-   for(int i = 0; i < (rsdt->h.length - sizeof(rsdt->h)) / 4; i++) {
+   for(u32 i = 0; i < (rsdt->h.length - sizeof(rsdt->h)) / 4; i++) {
       
       u64 a = (u64)VIRT(rsdt->sdtPtr[i]);
       SDTHeader *h = (SDTHeader*) a;
@@ -133,7 +146,9 @@ void acpiRsdt() {
       }
    }
 }
-
+void acpiReboot() {
+   acpiOut(fadt->ResetReg, fadt->ResetValue);
+}
 void acpiShutdown(){
    asm("cli");
    out16(fadt->PM1aControlBlock, SLP_TYPa | 1<<13);

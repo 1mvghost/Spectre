@@ -12,6 +12,7 @@ typedef struct {
 } __attribute__((packed)) RSDP;
 
 void acpiInit(u64 rsdpAddr);
+void acpiReboot();
 void acpiShutdown();
 
 #endif
