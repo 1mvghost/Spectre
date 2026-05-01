@@ -4,4 +4,5 @@
 #include <vfs.h>
 
 void tmpInit(struct FsMnt *mnt);
+
 #endif

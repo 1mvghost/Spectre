@@ -11,12 +11,11 @@ static struct FsMnt  mntTable[64];
 static struct FsNode *root;
 static int mntI = 1;
 
-int vfsAlloc(char* name, struct FsMnt *mnt, u8 type) {
+int vfsAlloc(struct FsMnt *mnt, u8 type) {
     for(int i = 1; i<256; i++) {
         if(!mnt->Inode[i].Type) {
             mnt->Inode[i].Type = type;
             mnt->Inode[i].Mnt  = mnt;
-            strcpy(mnt->Inode[i].Name,name);
             return i;
         }
     }
@@ -125,39 +124,7 @@ struct FsFd* vfsFdAlloc(struct FsNode *n, u64 flags) {
     fd->Flags = flags;
     return fd;
 }
-struct FsFd* vfsOpen(char* path, u64 flags) {
-    struct FsNode* n = vfsLookup(path);
-    if(!n) return 0;
-    if(n->Ops && n->Ops->Open) {
-        if(n->Ops->Open(n,flags)) {
-            struct FsFd *fd = vfsFdAlloc(n,flags);
-            if(!fd) return 0;
 
-            return fd;
-        } else {
-            return 0;
-        }
-
-    } else {
-        return 0;
-    }
-}
-
-int vfsWrite(struct FsFd *fd, u8* buf, u64 size) {
-    if(!fd)  return 0;
-    if(!buf) return 0;
-    struct FsNode *n = fd->Inode;
-    if(!n) return 0;
-
-    if(n->Ops && n->Ops->Write) {
-        int w=n->Ops->Write(fd,buf,size);
-
-        if(!w) return 0;
-
-        return w;
-    }
-    return 0;
-}
 Splock mntSplock = ATOMIC_FLAG_INIT;
 
 void vfsMount(char* path, char* dev, char* type) {

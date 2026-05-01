@@ -7,7 +7,7 @@
 
 
 struct FsNode {
-    char             Name[64];
+    //char             Name[64];
     u8               Type;
     struct FsMnt     *Mnt;
     void*            FsData;
@@ -35,15 +35,15 @@ struct FsFd {
     u64 Flags; 
 };
 struct FsHandler {
-    int            (*Open)  (struct FsNode *n, u64 flags);
-    int            (*Read)  (struct FsFd *fd, u8* buf, u64 size);
-    int            (*Write) (struct FsFd *fd, u8* buf, u64 size);
-    void           (*Close) (struct FsFd *fd);
-    int            (*MkDir) (struct FsNode *n, char* name);
-    struct FsNode* (*Lookup)(struct FsNode *n, char* name);
+    int            (*Open)   (struct FsNode *n, u64 flags);
+    int            (*Read)   (struct FsFd *fd, u8* buf, u64 size);
+    int            (*Write)  (struct FsFd *fd, u8* buf, u64 size);
+    void           (*Close)  (struct FsFd *fd);
+    bool           (*MkDir)  (struct FsNode *n, char* name);
+    struct FsNode* (*Lookup) (struct FsNode *n, char* name);
+    bool           (*ReadDir)(struct FsNode *n, struct FsNode* buf, u64 size);
 };
 void vfsInit();
-int vfsAlloc(char* name, struct FsMnt *mnt, u8 type);
-struct FsFd* vfsOpen(char* path, u64 flags);
-int vfsWrite(struct FsFd *fd, u8* buf, u64 size);
+int vfsAlloc(struct FsMnt *mnt, u8 type);
+struct FsNode* vfsLookup(char* path);
 #endif

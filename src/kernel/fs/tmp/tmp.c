@@ -20,8 +20,8 @@ struct FsHandler tmpHandler = {
 void tmpInit(struct FsMnt *mnt) {
     debug("tmpfs: mnt is %s\n",mnt->Path);
 
-    mnt->Root = &mnt->Inode[vfsAlloc("",mnt,TYPE_DIR)];
+    mnt->Root = &mnt->Inode[vfsAlloc(mnt,TYPE_DIR)];
     mnt->Root->Ops = &tmpHandler;
 
-    dirdev = &mnt->Inode[vfsAlloc("dev",mnt,TYPE_DIR)];
+    dirdev = &mnt->Inode[vfsAlloc(mnt,TYPE_DIR)];
 }

@@ -18,7 +18,7 @@
 #include <mp.h>
 #include <mem.h>
 #include <fb.h>
-#include <vfs.h>
+#include <ops.h>
 
 void test() {
 //#define IDE_TEST

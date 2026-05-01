@@ -4,6 +4,7 @@
 #include <vfs.h>
 
 struct FsNode* dirdebug;
+
 struct FsNode* devLookup(struct FsNode *n, char* name) {
     if(!strcmp(name, "dbg")) {
         return dirdebug;
@@ -32,9 +33,9 @@ struct FsHandler devHandler = {
 void devInit(struct FsMnt *mnt) {
     debug("devfs: mnt is %s\n",mnt->Path);
 
-    mnt->Root = &mnt->Inode[vfsAlloc("",mnt,TYPE_DIR)];
+    mnt->Root = &mnt->Inode[vfsAlloc(mnt,TYPE_DIR)];
     mnt->Root->Ops = &devHandler;
 
-    dirdebug = &mnt->Inode[vfsAlloc("dbg",mnt,TYPE_FILE)];
+    dirdebug = &mnt->Inode[vfsAlloc(mnt,TYPE_FILE)];
     dirdebug->Ops = &devHandler;
 }
