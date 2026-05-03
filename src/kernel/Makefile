@@ -1,8 +1,12 @@
+.PHONY: all tmp
 #Dirs
 BUILD?=/build
 INC?=/inc
 ISO?=/iso
-SRC_DIRS=$(BUILD)/driver/ $(BUILD)/driver/disk $(BUILD)/cpu $(BUILD)/kernel $(BUILD)/cons $(BUILD)/mem $(BUILD)/util $(BUILD)/fs $(BUILD)/fs/dev $(BUILD)/fs/tmp $(BUILD)/fs/vfs
+
+SRC_DIRS=$(shell find ./* -type d)
+TMP_DIRS=$(patsubst ./%, $(BUILD)/%, $(SRC_DIRS))
+
 #Tools
 GCC=gcc #/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
 GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic -fno-stack-protector
@@ -12,21 +16,22 @@ NASM=nasm
 #Misc
 KERNEL_BUILD=$(ISO)/boot/kernel.sys
 
-ASM_SOURCE=$(wildcard ./*.asm) $(wildcard ./*/*.asm) $(wildcard ./*/*/*.asm)
+ASM_SOURCE=$(shell find . -name "*.asm")
 ASM_OBJ=$(patsubst ./%.asm, $(BUILD)/%.asm.o, $(ASM_SOURCE))
 
-C_SOURCE=$(wildcard ./*.c) $(wildcard ./*/*.c) $(wildcard ./*/*/*.c)
+C_SOURCE=$(shell find . -name "*.c")
 C_OBJ=$(patsubst ./%.c, $(BUILD)/%.c.o, $(C_SOURCE))
 
 tmp: 
-	mkdir $(SRC_DIRS) # create all tmp dirs
+	@mkdir $(TMP_DIRS) # create all tmp dirs
+
 all: tmp $(KERNEL_BUILD)
 
 $(BUILD)/%.asm.o: %.asm
-	$(NASM) -f elf64 $< -o $@
-
+	@echo "* NASM * $<"
+	@$(NASM) -f elf64 $< -o $@
 $(BUILD)/%.c.o: %.c
-	$(GCC) $(GCCFLAGS) $< -o $@ -c
-
+	@echo "* GCC *  $<"
+	@$(GCC) $(GCCFLAGS) $< -o $@ -c
 $(KERNEL_BUILD): $(ASM_OBJ) $(C_OBJ)
-	$(LD) -o $@ $^ -T link.ld -nostdlib -z max-page-size=4096
+	@$(LD) -o $@ $^ -T link.ld -nostdlib -z max-page-size=4096
