@@ -33,9 +33,9 @@ struct FsHandler devHandler = {
 void devInit(struct FsMnt *mnt) {
     debug("devfs: mnt is %s\n",mnt->Path);
 
-    mnt->Root = &mnt->Inode[vfsAlloc(mnt,TYPE_DIR)];
+    mnt->Root = vfsAlloc(mnt,TYPE_DIR);
     mnt->Root->Ops = &devHandler;
 
-    dirdebug = &mnt->Inode[vfsAlloc(mnt,TYPE_FILE)];
+    dirdebug = vfsAlloc(mnt,TYPE_FILE);
     dirdebug->Ops = &devHandler;
 }

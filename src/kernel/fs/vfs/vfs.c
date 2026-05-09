@@ -6,20 +6,20 @@
 #include <dev.h>
 #include <stdio.h>
 #include <tmp.h>
+#include <ops.h>
 
 static struct FsMnt  mntTable[64];
 static struct FsNode *root;
 static int mntI = 1;
 
-int vfsAlloc(struct FsMnt *mnt, u8 type) {
-    for(int i = 1; i<256; i++) {
-        if(!mnt->Inode[i].Type) {
-            mnt->Inode[i].Type = type;
-            mnt->Inode[i].Mnt  = mnt;
-            return i;
-        }
+struct FsNode* vfsAlloc(struct FsMnt *mnt, u8 type) {
+    struct FsNode *n = malloc(sizeof(struct FsNode));
+    n->Type = type;
+    n->Mnt  = mnt;
+    if(mnt->Root && mnt->Root->Ops) {
+        n->Ops  = mnt->Root->Ops;
     }
-    return 0;
+    return n;
 }
 int vfsFindMnt(struct FsNode *n) {
     if(!n) return 0;
@@ -161,6 +161,7 @@ void vfsMount(char* path, char* dev, char* type) {
 
 void vfsInit() {
     root = malloc(sizeof(struct FsNode));
+
     vfsMount("/",   "","tmp");
-    vfsMount("/dev","","dev");
+    vfsMount("/dev/","","dev");
 }
