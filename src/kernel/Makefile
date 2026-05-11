@@ -1,8 +1,10 @@
 .PHONY: all tmp
+
 #Dirs
 BUILD?=/build
-INC?=/inc
-ISO?=/iso
+KERNEL_BUILD?=/
+
+INC=inc
 
 SRC_DIRS=$(shell find ./* -type d)
 TMP_DIRS=$(patsubst ./%, $(BUILD)/%, $(SRC_DIRS))
@@ -14,8 +16,6 @@ LD=ld #/usr/local/x86_64elfgcc/bin/x86_64-elf-ld
 NASM=nasm
 
 #Misc
-KERNEL_BUILD=$(ISO)/boot/kernel.sys
-
 ASM_SOURCE=$(shell find . -name "*.asm")
 ASM_OBJ=$(patsubst ./%.asm, $(BUILD)/%.asm.o, $(ASM_SOURCE))
 
@@ -23,7 +23,7 @@ C_SOURCE=$(shell find . -name "*.c")
 C_OBJ=$(patsubst ./%.c, $(BUILD)/%.c.o, $(C_SOURCE))
 
 tmp: 
-	@mkdir $(TMP_DIRS) # create all tmp dirs
+	@mkdir -p $(TMP_DIRS) # create all tmp dirs
 
 all: tmp $(KERNEL_BUILD)
 
