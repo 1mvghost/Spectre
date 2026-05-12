@@ -123,14 +123,7 @@ void main(){
    mpInit(mp);
    
    test();
-   int hit = 0;
-   while (1)
-   {
-    printf(INFO,"ddddddddddddddddddddddddddddddd%d%d\n",hit,hit);
-    ++hit;   
-}
-   
-   
+
    keypress();
    acpiReboot();
 
