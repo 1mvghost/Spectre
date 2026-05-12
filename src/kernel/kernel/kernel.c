@@ -68,16 +68,16 @@ void panic(char* err) {
    cpuid(&eax,&ebx,&ecx,&edx);
    u32 cpuId = (ebx>>24) & 0xFF; 
 
-   printf(PANIC,"%s",err);
-   printf(PANIC,"CPU: %d\n",cpuId);
-   printf(PANIC,"--- Kernel Call Trace ---\n");
+   debug("panic: %s",err);
+   debug("panic: CPU: %d\n",cpuId);
+   debug("panic: --- Kernel Call Trace ---\n");
 
    struct Stacktrace *stk;
    asm("movq %%rbp,%0" : "=r"(stk) ::);
 
    for(u64 fr = 0; stk && fr < 10; ++fr) {
       if(stk->rip==0) break;
-      printf(PANIC,"%x\n",stk->rip);
+      debug("panic: %x\n",stk->rip);
       stk = stk->rbp;
    }
    
@@ -123,6 +123,13 @@ void main(){
    mpInit(mp);
    
    test();
+   int hit = 0;
+   while (1)
+   {
+    printf(INFO,"ddddddddddddddddddddddddddddddd%d%d\n",hit,hit);
+    ++hit;   
+}
+   
    
    keypress();
    acpiReboot();
