@@ -85,6 +85,15 @@ void test() {
    }
    
    char* buf = "SERIAL TEST\n";
-   printf(INFO,"vfs: wrote %d bytes",vfsWrite(fd,(u8*)buf,strlen(buf)));
+   printf(INFO,"vfs: wrote %d bytes\n",vfsWrite(fd,(u8*)buf,strlen(buf)));
+
+   struct FsFd *fd2 = vfsOpen("/dev",0x03);
+   void* testt = calloc(1024);
+   struct linux_dirent64 *dent =testt;
+
+   vfsReadDir(fd2,dent,1);
+
+   printf(INFO,"%s\n",dent->d_name);
+   
 #endif
 }

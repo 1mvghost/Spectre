@@ -12,6 +12,23 @@ struct FsNode* devLookup(struct FsNode *n, char* name) {
     return 0;
 }
 
+bool devReadDir(struct FsFd *fd, struct linux_dirent64* buf, u64 size) {
+    if(!fd) return 0;
+    if(fd->Mnt->Root != fd->Inode){
+        return 0;
+    }
+    if(fd->Pos > 0) {
+        return 0;
+    }
+    if(size != 1) {
+        return 0;
+    }
+    strcpy(buf->d_name,"dbg");
+    buf->d_reclen  = sizeof(struct linux_dirent64) + strlen("dbg");
+    buf->d_type = fd->Inode->Type;
+    buf->d_ino = 67;
+    return 1;
+}
 int devOpen(struct FsNode *n, u64 flags) {
     return 1;
 }
@@ -28,7 +45,8 @@ int devWrite(struct FsFd *fd, u8* buf, u64 size) {
 struct FsHandler devHandler = {
     .Lookup = devLookup,
     .Open   = devOpen,
-    .Write  = devWrite
+    .Write  = devWrite,
+    .ReadDir= devReadDir
 };
 void devInit(struct FsMnt *mnt) {
     debug("devfs: mnt is %s\n",mnt->Path);

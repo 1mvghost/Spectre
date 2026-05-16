@@ -19,6 +19,9 @@ struct FsNode* tmpLookup(struct FsNode *n, char* name) {
 
 bool tmpReadDir(struct FsFd *fd, struct linux_dirent64* buf, u64 size) {
     if(!fd) return 0;
+    if(fd->Mnt->Root != fd->Inode){
+        return 0;
+    }
     if(fd->Pos > 0) {
         return 0;
     }

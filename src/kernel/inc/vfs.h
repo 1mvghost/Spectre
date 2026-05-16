@@ -54,4 +54,5 @@ struct FsHandler {
 void vfsInit();
 struct FsNode* vfsAlloc(struct FsMnt *mnt, u8 type);
 struct FsNode* vfsLookup(char* path);
+struct FsFd* vfsFdAlloc(struct FsNode *n, u64 flags);
 #endif

@@ -6,6 +6,6 @@
 
 struct FsFd* vfsOpen(char* path, u64 flags);
 int vfsWrite(struct FsFd *fd, u8* buf, u64 size);
-struct FsFd* vfsFdAlloc(struct FsNode *n, u64 flags);
+bool vfsReadDir(struct FsFd *fd, struct linux_dirent64* buf, u64 size);
 
 #endif
