@@ -1,7 +1,6 @@
 #include <vmm.h>
 #include <pmm.h>
 
-
 #define OFFSET(addr)              (addr&0xFFF)
 #define P1(addr)                  ((addr >> 12)&0x1FF)
 #define P2(addr)                  ((addr >> 21)&0x1FF)

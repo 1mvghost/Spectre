@@ -2,5 +2,5 @@
 #define MP_H
 #include <limine.h>
 #include <util.h>
-void mpInit(struct limine_mp_response *m);
+void mpInit();
 #endif

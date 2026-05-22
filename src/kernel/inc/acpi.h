@@ -11,7 +11,7 @@ typedef struct {
    u32 rsdt;
 } __attribute__((packed)) RSDP;
 
-void acpiInit(u64 rsdpAddr);
+void acpiInit();
 void acpiReboot();
 void acpiShutdown();
 

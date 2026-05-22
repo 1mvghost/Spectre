@@ -16,6 +16,7 @@
 #include <mmap.h>
 #include <alloc.h>
 #include <stdatomic.h>
+#include <boot.h>
 
 void mpEntry(struct limine_mp_info *mp) {
     gdtMCpuInit();
@@ -25,7 +26,8 @@ void mpEntry(struct limine_mp_info *mp) {
     asm("cli"); asm("hlt");
 }
 
-void mpInit(struct limine_mp_response *m) {
+void mpInit() {
+    struct limine_mp_response *m = limineMpRequest().response;
     debug("mp: found %d cpus\n",m->cpu_count);
     
     for(u64 i = 0; i<m->cpu_count; i++) {

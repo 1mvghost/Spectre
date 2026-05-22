@@ -2,8 +2,10 @@
 #define MMAP_H
 #include <util.h>
 #include <limine.h>
-void mMapInit(struct limine_memmap_response *mMap);
+
+void mMapInit();
 struct limine_memmap_entry mMapGet(u64 i);
 int mMapLen();
 u64 mMapTotalMem();
+
 #endif

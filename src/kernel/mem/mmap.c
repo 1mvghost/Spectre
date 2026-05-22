@@ -1,5 +1,7 @@
 #include <mmap.h>
 #include <debug.h>
+#include <boot.h>
+
 static u64 total=0;
 static int len=0;
 /* real hardware fix : increased to 1024 */
@@ -14,7 +16,8 @@ int mMapLen() {
 u64 mMapTotalMem() {
     return total;
 }
-void mMapInit(struct limine_memmap_response *mMap) {
+void mMapInit() {
+    struct limine_memmap_response *mMap = limineMMapRequest().response;
     len = mMap->entry_count;
     for(int i=0; i < len; i++) {
         memcpy(&ent[i],mMap->entries[i],sizeof(struct limine_memmap_entry));

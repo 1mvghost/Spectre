@@ -1,6 +1,7 @@
 #include <fb.h>
 #include <debug.h>
-
+#include <boot.h>
+#include <limine.h>
 static u64 x;
 static u64 y;
 static u64 addr;
@@ -15,8 +16,13 @@ u64 fbGetAddr() {
     return addr;
 }
 
-void fbInit(u64 resX, u64 resY, u64 fbAddr) {
-    debug("fb: PITCH:%d HEIGHT:%d ADDR:%x\n",resX,resY,fbAddr);
-    x=resX; y=resY; addr=fbAddr;
+void fbInit() {
+    struct limine_framebuffer *fb = limineFbRequest().response->framebuffers[0];
+
+    addr = (u64)fb->address;
+    x    = (u64)fb->pitch;
+    y    = (u64)fb->height;
+    
+    debug("fb: PITCH:%d HEIGHT:%d ADDR:%x\n",x,y,addr);
 
 }

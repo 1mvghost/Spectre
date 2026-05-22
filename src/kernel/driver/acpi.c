@@ -5,6 +5,8 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <debug.h>
+#include <boot.h>
+
 typedef struct {
    char signature[4];
    u32 length;
@@ -159,7 +161,14 @@ void acpiShutdown(){
    panic("SHUTDOWN FAILED\n");
 }
 
-void acpiInit(u64 rsdpAddr){
+void acpiInit(){
+   struct limine_rsdp_response *rsdpResponse = limineRsdpRequest().response;
+
+   u64 rsdpAddr = 0;
+
+   if(rsdpResponse) {
+      rsdpAddr = (u64)rsdpResponse->address;
+   }
    if(rsdpAddr == 0) {
       debug("acpi: NOT FOUND :(\n");
       return;
