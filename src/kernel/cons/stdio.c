@@ -4,43 +4,14 @@
 #include <fb.h>
 #include <mem.h>
 #include <debug.h>
+#include <cons.h>
 
 static Splock finished=ATOMIC_FLAG_INIT;
-static u64 curX=0;
-static u64 curY=0;
-
-void scroll(){
-    /* terrible scroll */
-    u64 row = fbResY() / FHEIGHT; 
-    u64 r   = fbResX() * FHEIGHT;
-    memmove((u8*)fbGetAddr(), (u8*)fbGetAddr()+r, (r*row)-r);
-    memset((u8*)(fbGetAddr()+(row-1)*r), 0, r);
-    curY=fbResY()-16;
-    curX=0;
-}
 
 void putc(char ch){
-    switch (ch) {
-        case '\n':
-            curY+=16;
-            curX=0;
-            if(curY>=fbResY()){
-                scroll();
-            }
-            break;
-        default: 
-            if(curX>(fbResX()/4)) {
-                curX=0;
-                curY+=16;
-            }
-            if(curY>=fbResY()) {
-                scroll();
-            }
-            fontCh(curX,curY,ch);
-            curX+=8;
-            break;       
-    }
+    consPutc(ch);
 }
+
 int sputc(u8* buf, int i, char ch) {
     buf[i] = ch;
     i++;
@@ -158,7 +129,6 @@ void printf(int id, char* fmt, ...) {
     for(int i = 0; i < 1024; i++) {
         if(!buf[i]) break;
         putc(buf[i]);
-        debugPutc(buf[i]);
     }
 
     va_end(va);

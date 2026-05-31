@@ -10,6 +10,11 @@ typedef u64 size_t;
 #define U64_LOW(addr) (addr & 0xffffffff)
 #define U64_HIGH(addr)(addr>>32 & 0xffffffff)
 
+/* credit: https://github.com/embeddedartistry/libmemory/blob/master/src/aligned_malloc.c */
+#define ALIGN_UP(num,align)     (((num) + ((align)-1)) & ~((align)-1))
+
+#define ALIGN_DOWN(num,align)   (num & ~((align)-1))
+
 #include <stdio.h>
 #include <kernel.h>
 

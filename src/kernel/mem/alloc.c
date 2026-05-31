@@ -52,12 +52,6 @@ bool spallocReq(size_t pages) {
 	mSpinlockDrop(&reqSplock);
 	return 1;
 }
-size_t spalign(size_t size){
-	if((size % ALIGN) != 0) {
-		size = ((size/ALIGN)+1)*ALIGN;
-	}
-	return size;
-}
 
 void* malloc(size_t size) {
 	/* the actual thing. */
@@ -66,7 +60,7 @@ void* malloc(size_t size) {
 
 	mSpinlockAcquire(&allocSplock);
 
-	size = spalign(size);
+	size = ALIGN_UP(size, ALIGN);
 
 	size_t pages = ((size+sizeof(struct HeapChunk)) / PAGE_SIZE);
 	if(((size+sizeof(struct HeapChunk)) % PAGE_SIZE) != 0) {
@@ -201,7 +195,7 @@ dfree:
 void* calloc(size_t size) {
 	if(!size) return 0;
 	if(size == 0) return 0;
-	size = spalign(size);
+	size = ALIGN_UP(size, ALIGN);
 
 	void* m = malloc(size);
 	memset(m,0,size);
@@ -212,7 +206,7 @@ void* calloc(size_t size) {
 void* realloc(void* addr, size_t size) {
 	if(!size) return 0;
 	if(size == 0) return 0;
-	size = spalign(size);
+	size = ALIGN_UP(size, ALIGN);
 
 	free(addr);
 	void* m = malloc(size);

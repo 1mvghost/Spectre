@@ -87,13 +87,27 @@ void test() {
    char* buf = "SERIAL TEST\n";
    printf(INFO,"vfs: wrote %d bytes\n",vfsWrite(fd,(u8*)buf,strlen(buf)));
 
+   printf(INFO,"* readdir on /dev *\n");
    struct FsFd *fd2 = vfsOpen("/dev",0x03);
    void* testt = calloc(1024);
    struct linux_dirent64 *dent =testt;
 
    vfsReadDir(fd2,dent,1);
-
    printf(INFO,"%s\n",dent->d_name);
+
+   printf(INFO,"* readdir on / *\n");
+   struct FsFd *fd3 = vfsOpen("/",0x03);
+   void* testtt = calloc(1024);
+   struct linux_dirent64 *dentt =testtt;
+
+   vfsReadDir(fd3,dentt,1);
+
+   printf(INFO,"%s\n",dentt->d_name);
    
+#endif
+#ifdef CONS_TEST
+   for(int i = 0; i < 100000; i++) {
+      printf(0,"abb");
+   }
 #endif
 }
