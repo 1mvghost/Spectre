@@ -1,8 +1,8 @@
 .PHONY: all tmp
 
 #Dirs
-BUILD?=/build
-KERNEL_BUILD?=/
+BUILD?=./build
+KERNEL_BUILD?=./
 
 INC=inc
 

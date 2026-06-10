@@ -1,5 +1,6 @@
 # * SPECTRE *
-Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/limine-bootloader/limine) for booting.
+Spectre is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
+
 # * FEATURES *
 * AHCI & IDE Disk Drivers <br/>
 * ACPI <br/>
@@ -14,20 +15,25 @@ Spectre is a 64-Bit Hobby Kernel made in C. It uses [Limine](https://github.com/
 * ..and much more</br>
 
 # * COMPILING *
-(no need to compile, release is in the "Releases" tab)
+(there is really no need to compile, the release is usually in the "Releases" tab)
+
 1. Clone the repository
 ```bash
 git clone https://github.com/1mvghost/Spectre.git
 ```
 2. Install some stuff you may need and make (make sure you're at the root!)
 ```bash
-./install.sh
+./tools/install.sh
 make all
 ```
-3. You can now run the OS with either of these commands :)
-```bash
-./qemu.sh
-./qemuUefi.sh
-./bochs.sh
-```
+3. If everything goes right, you now have the ISO which you can use to boot the OS :)
 
+# * BOOTING *
+- real hardware: flash the ISO file onto an USB stick (with dd, Rufus etc) and use your BIOS's Boot Menu to boot from the USB
+- QEMU/Bochs: you can use the scripts found in the "tools" folder:
+```bash
+qemu.sh
+qemuUefi.sh
+bochs.sh
+```
+- VBox: mount the ISO as cdrom and use the Boot Menu to boot from it

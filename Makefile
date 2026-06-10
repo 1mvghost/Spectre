@@ -1,27 +1,30 @@
-.PHONY: all clean limine iso
+.PHONY: all clean kernel limine iso
 
 #Dirs
 SRC=src
 BUILD=build
 ISO=iso
 LIMINE=limine
+TOOLS=tools
 
 KERNEL_SRC=$(SRC)/kernel
 
 #Misc
 KERNEL_BUILD=kernel.sys
 ISO_BUILD	=$(BUILD)/os.iso
+LIMINE_VER	=v11.x
 
+all: clean kernel limine iso
 
 $(BUILD):
 	@mkdir -p $(BUILD)
 
-all: clean kernel limine iso
 
 kernel: $(BUILD)
 	@make -C $(KERNEL_SRC) BUILD=$(abspath $(BUILD)) KERNEL_BUILD=$(abspath $(KERNEL_BUILD)) all
 
 limine:
+    @git clone https://codeberg.org/Limine/limine.git --branch=$(LIMINE_VER)-binary --depth=1 2>/dev/null
 	@make -C $(LIMINE) all
 
 iso: $(BUILD)
@@ -41,5 +44,6 @@ iso: $(BUILD)
 	
 	@$(LIMINE)/limine bios-install $(ISO_BUILD)
 
+	@echo "*** iso ready: $(ISO_BUILD)"
 clean:
 	rm -rf $(BUILD) $(ISO) $(KERNEL_BUILD)
