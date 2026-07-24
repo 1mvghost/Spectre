@@ -1,4 +1,4 @@
-spctrx
+# spctrx
 spctrx is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/1mvghost/spctrx)
 
