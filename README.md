@@ -1,5 +1,6 @@
-# * SPECTRE *
-Spectre is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
+spctrx
+spctrx is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/1mvghost/spctrx)
 
 # * FEATURES *
 * AHCI & IDE Disk Drivers <br/>
@@ -19,7 +20,7 @@ Spectre is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](http
 
 1. Clone the repository
 ```bash
-git clone https://github.com/1mvghost/Spectre.git
+git clone https://github.com/1mvghost/spctrx.git
 ```
 2. Install some stuff you may need and make (make sure you're at the root!)
 ```bash
