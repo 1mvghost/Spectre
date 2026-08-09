@@ -3,6 +3,7 @@
 #include <vmm.h>
 #include <pmm.h>
 #include <alloc.h>
+
 #define FIS_TYPE_REG_H2D          0x27
 
 #define ATA_CMD_READ_PIO          0x20
@@ -130,8 +131,7 @@ typedef volatile struct {
     u8 Reserved1[4];
 } FisRegHostToDev;
 
-
-static HbaMem *base;
+static HbaMem *base = 0;
 
 void ahciCmdStart(HbaPort *port) {
     while(port->Cmd & HBA_PxCMD_CR){}
@@ -151,33 +151,39 @@ void ahciCmdStop(HbaPort *port) {
         break;
     }
 } 
-void ahciRebase(int p, HbaPort *port) {
+void ahciRebase(HbaPort *port) {
     ahciCmdStop(port);
 
     /* alloc command list */
-    u64* cl = (u64*) calloc(4096);
-    u64 clPhys = vmmVirtToPhys((u64)cl);
-    port->Clb    = U64_LOW(clPhys);
-    port->ClbUp  = U64_HIGH(clPhys);
+    void* cl    = vmmAlloc(1);
+    memset(cl, 0, PAGE_SIZE);
+
+    u64 clPhys  = vmmVirtToPhys(cl);
+    port->Clb   = U64_LOW(clPhys);
+    port->ClbUp = U64_HIGH(clPhys);
 
     /* alloc fis */
-    u64* fis = (u64*) calloc(4096);
-    u64 fisPhys = vmmVirtToPhys((u64)fis);
-    port->Fb   = U64_LOW(fisPhys);
-    port->FbUp = U64_HIGH(fisPhys);
+    void* fis   = vmmAlloc(1);
+    memset(fis, 0, PAGE_SIZE);
+
+    u64 fisPhys = vmmVirtToPhys(fis);
+    port->Fb    = U64_LOW(fisPhys);
+    port->FbUp  = U64_HIGH(fisPhys);
 
     /* alloc command table */
-    HbaCmdHeader *cmd = (HbaCmdHeader*)VIRT(port->Clb);
-    for(int i = 0; i<32; i++) {
+    HbaCmdHeader *cmd = (HbaCmdHeader*) cl;
+
+    for(int i = 0; i < 32; i++) {
         cmd[i].PrdtLen = 8; /* 8 ENTRIES PER CMD TABLE */
 
-        u64* ctba = (u64*) calloc(4096);
-        u64 ctbaPhys = vmmVirtToPhys((u64)ctba);
+        void* ctba          = vmmAlloc(1);
+        memset(ctba, 0, PAGE_SIZE);
+
+        u64 ctbaPhys        = vmmVirtToPhys(ctba);
         cmd[i].CtbAddr      = U64_LOW(ctbaPhys);
         cmd[i].CtbAddrUp    = U64_HIGH(ctbaPhys);
-        //printf(0,"%x\n",cmd[i].Ctba);
     }
-    
+
     ahciCmdStart(port);
 }
 
@@ -211,172 +217,90 @@ int ahciCheckType(HbaPort *port) {
         default: return AHCI_DEV_SATA;
     }
 }
-bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf) {
-    HbaPort *port = &base->Ports[p];
-    port->Is = (u32) -1; /* clear interrupt bits */
-    int slot = ahciCmdFindFree(port);
-    if(slot == -1) return 0;
 
-    HbaCmdHeader *cmd = (HbaCmdHeader*) VIRT(port->Clb);
-
-    cmd += slot;
-    cmd->CmdFisLen   = sizeof(FisRegHostToDev)/sizeof(u32);
-    cmd->Write       = 0;
-    cmd->PrdtLen     = (u16)((sectAmount-1)>>4) + 1;
-
-    HbaCmdTbl *cmdTbl = (HbaCmdTbl*) VIRT(cmd->CtbAddr);
-    memset(cmdTbl,0,sizeof(HbaCmdTbl) + (cmd->PrdtLen-1)*sizeof(HbaPrdtEnt)); 
-
-    u64 bufPhys = vmmVirtToPhys((u64)buf);
-
-    int i;
-    for(i = 0; i<cmd->PrdtLen-1; i++) {
-        cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
-        cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
-        cmdTbl->Ent[i].Dbc      = (8*1024)-1;
-        cmdTbl->Ent[i].I        = 1;
-        
-        buf        += 4*1024;
-        sectAmount -= 16;
-    }
-
-    cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
-    cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
-    cmdTbl->Ent[i].Dbc      = (sectAmount*512)-1;
-    cmdTbl->Ent[i].I        = 1;
-
-    /* setup the ACTUAL command */
-    FisRegHostToDev *cmdFis = (FisRegHostToDev*) VIRT(&cmdTbl->CmdFis);
-
-    cmdFis->FisType = FIS_TYPE_REG_H2D;
-    cmdFis->C       = 1;
-    cmdFis->Cmd     = ATA_CMD_READ_DMA_EXT;
-
-    u32 lbaLow  = lba&0xffffffff;
-    u32 lbaHigh = lba>>32;
-
-    cmdFis->Lba0    = (u8)(lbaLow);
-    cmdFis->Lba1    = (u8)(lbaLow>>8);
-    cmdFis->Lba2    = (u8)(lbaLow>>16);
-    cmdFis->Device  = 1<<6;
-
-    cmdFis->Lba3    = (u8)(lbaLow>>24);
-    cmdFis->Lba4    = (u8)(lbaHigh);
-    cmdFis->Lba5    = (u8)(lbaHigh>>8);
-
-    cmdFis->CountLow =  sectAmount & 0xFF;
-    cmdFis->CountHigh = (sectAmount >> 8) & 0xFF;
-
-    /* edging it */
+bool ahciSendCommand(HbaPort *port) {
+    
+    int wait = 1000000000;
     int spin = 0;
-    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & (spin < 1000000)) {
+
+    while(port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ) && spin < wait) {
         spin++;
     }
-    if(spin == 1000000) {
-        debug("ahci: PORT IS HUNG\n");
-        return 0;
+    if(spin == wait) {
+        debug("ahci: PORT HUNG\n");
+        return false;
     }
 
-    port->Ci = 1<<slot;
+    port->Ci = 1;
 
-    while(1) {
-        if(!(port->Ci && (1<<slot))) {
-            break;
-        }
-        if(port->Is & HBA_PxIS_TFES) {
-            debug("ahci: ERROR READING FROM DISK\n");
-            return 0;
-        }
-    }
+    while(port->Ci == 1 && !(port->Is & HBA_PxIS_TFES)) {}
+
     if(port->Is & HBA_PxIS_TFES) {
-        debug("ahci: ERROR READING FROM DISK\n");
-        return 0;
+        debug("ahci: ERROR\n");
+        return false;
     }
-    return 1;
+
+    return true;
+}
+
+bool ahciReadOrWrite(int p, u64 lba, u32 sectAmount, void* buf, bool write) {
+    HbaPort *port = &base->Ports[p];
+    port->Is = 0xFFFFFFFF;
+
+    int slot = ahciCmdFindFree(port);
+    if(slot == -1) {
+        debug("ahci: no free slots right now\n");
+        return false;
+    }
+
+    HbaCmdHeader* cmd = (HbaCmdHeader*) vmmPhysToVirt(U64(port->Clb, port->ClbUp));
+    if(!cmd) return false;
+
+    cmd[slot].CmdFisLen = sizeof(FisRegHostToDev) / sizeof(u32);
+    cmd[slot].Write     = write;
+
+    HbaCmdTbl *table = (HbaCmdTbl*) vmmPhysToVirt(U64(cmd[slot].CtbAddr, cmd[slot].CtbAddrUp));
+    if(!table) return false;
+    
+    u64 bufPhys = vmmVirtToPhys(buf);
+
+    table->Ent[0].DbAddr   = U64_LOW(bufPhys);
+    table->Ent[0].DbAddrUp = U64_HIGH(bufPhys);
+    table->Ent[0].Dbc      = (512 * sectAmount) - 1;
+    table->Ent[0].I        = 1;
+
+    FisRegHostToDev *fis = (FisRegHostToDev*) &table->CmdFis;
+
+    fis->FisType   = FIS_TYPE_REG_H2D;
+    fis->C         = 1;
+    fis->Cmd       = ATA_CMD_READ_DMA_EXT;
+
+    if(write) 
+        fis->Cmd = ATA_CMD_WRITE_DMA_EXT;
+
+    fis->Lba0      = lba & 0xFF;
+    fis->Lba1      = (lba >> 8) & 0xFF;
+    fis->Lba2      = (lba >> 16) & 0xFF;
+
+    fis->Device    = 64;
+
+    fis->Lba3      = (lba >> 24) & 0xFF;
+    fis->Lba4      = (lba >> 32) & 0xFF;
+    fis->Lba5      = (lba >> 40) & 0xFF;
+
+    fis->CountLow  = sectAmount & 0xFF;
+    fis->CountHigh = (sectAmount >> 8) & 0xFF;
+
+    return ahciSendCommand(port);
+}
+
+bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf) {
+    return ahciReadOrWrite(p, lba, sectAmount, buf, false);
 }
 bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf) {
-    HbaPort *port = &base->Ports[p];
-    port->Is = (u32) -1; /* clear interrupt bits */
-    int slot = ahciCmdFindFree(port);
-    if(slot == -1) return 0;
+    return ahciReadOrWrite(p, lba, sectAmount, buf, true);
+}
 
-    HbaCmdHeader *cmd = (HbaCmdHeader*) VIRT(port->Clb);
-
-    cmd += slot;
-    cmd->CmdFisLen   = sizeof(FisRegHostToDev)/sizeof(u32);
-    cmd->Write       = 1;
-    cmd->PrdtLen     = (u16)((sectAmount-1)>>4) + 1;
-
-    HbaCmdTbl *cmdTbl = (HbaCmdTbl*) VIRT(cmd->CtbAddr);
-    memset(cmdTbl,0,sizeof(HbaCmdTbl) + (cmd->PrdtLen-1)*sizeof(HbaPrdtEnt)); 
-
-    u64 bufPhys = vmmVirtToPhys((u64)buf);
-
-    int i;
-    for(i = 0; i<cmd->PrdtLen-1; i++) {
-        cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
-        cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
-        cmdTbl->Ent[i].Dbc      = (8*1024)-1;
-        cmdTbl->Ent[i].I        = 1;
-        
-        buf        += 4*1024;
-        sectAmount -= 16;
-    }
-
-    cmdTbl->Ent[i].DbAddr   = U64_LOW(bufPhys);
-    cmdTbl->Ent[i].DbAddrUp = U64_HIGH(bufPhys);
-    cmdTbl->Ent[i].Dbc      = (sectAmount*512)-1;
-    cmdTbl->Ent[i].I        = 1;
-
-    /* setup the ACTUAL command */
-    FisRegHostToDev *cmdFis = (FisRegHostToDev*) VIRT(&cmdTbl->CmdFis);
-
-    cmdFis->FisType = FIS_TYPE_REG_H2D;
-    cmdFis->C       = 1;
-    cmdFis->Cmd     = ATA_CMD_WRITE_DMA_EXT;
-
-    u32 lbaLow  = lba&0xffffffff;
-    u32 lbaHigh = lba>>32;
-
-    cmdFis->Lba0    = (u8)(lbaLow);
-    cmdFis->Lba1    = (u8)(lbaLow>>8);
-    cmdFis->Lba2    = (u8)(lbaLow>>16);
-    cmdFis->Device  = 1<<6;
-
-    cmdFis->Lba3    = (u8)(lbaLow>>24);
-    cmdFis->Lba4    = (u8)(lbaHigh);
-    cmdFis->Lba5    = (u8)(lbaHigh>>8);
-
-    cmdFis->CountLow =  sectAmount & 0xFF;
-    cmdFis->CountHigh = (sectAmount >> 8) & 0xFF;
-
-    /* edging */
-    int spin = 0;
-    while((port->Tfd & (ATA_SR_BSY | ATA_SR_DRQ)) & (spin < 1000000)) {
-        spin++;
-    }
-    if(spin == 1000000) {
-        debug("ahci: PORT IS HUNG\n");
-        return 0;
-    }
-
-    port->Ci = 1<<slot;
-
-    while(1) {
-        if(!(port->Ci && (1<<slot))) {
-            break;
-        }
-        if(port->Is & HBA_PxIS_TFES) {
-            debug("ahci: ERROR WRITING TO DISK\n");
-            return 0;
-        }
-    }
-    if(port->Is & HBA_PxIS_TFES) {
-        debug("ahci: ERROR WRITING TO DISK\n");
-        return 0;
-    }
-    return 1;
-} 
 void ahciEnum() {
     u32 pi = base->Pi;
     int i;
@@ -385,7 +309,7 @@ void ahciEnum() {
             int type = ahciCheckType(&base->Ports[i]);
             if (type == AHCI_DEV_SATA){
 				debug("ahci: SATA drive found at port %d\n", i);
-                ahciRebase(i,&base->Ports[i]);
+                ahciRebase(&base->Ports[i]);
             }
 			else if (type == AHCI_DEV_SATAPI){
 				debug("ahci: SATAPI drive found at port %d\n", i);
@@ -400,8 +324,12 @@ void ahciEnum() {
         pi>>=1;
     }
 }
-void ahciInit(u32 bar5) {
-    vmmMap((u64)VIRT(bar5),bar5,1,PTE_WRITABLE);
-    base = (HbaMem*) VIRT(bar5);
+void ahciInit(u64 bar5) {
+    if(base != 0) {
+        debug("ahci: more than 1 controller is not supported yet\n");
+        return;
+    }
+    vmmMap(vmmPhysToVirt(bar5), bar5, PTE_WRITABLE);
+    base = (HbaMem*) vmmPhysToVirt(bar5);
     ahciEnum();
 }

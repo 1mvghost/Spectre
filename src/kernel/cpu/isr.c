@@ -3,6 +3,8 @@
 #include <idt.h>
 #include <mem.h>
 #include <debug.h>
+#include <panic.h>
+
 extern void isr0(Regs*);
 extern void isr1(Regs*);
 extern void isr2(Regs*);
@@ -103,17 +105,19 @@ static const char *exceptions[32] = {
     "Unknown"
 };
 
-Splock splockk = ATOMIC_FLAG_INIT;
+Splock panicSplock = ATOMIC_FLAG_INIT;
 
 void isrHandler(Regs* regs) {
-    mSpinlockAcquire(&splockk);
+    mSpinlockAcquire(&panicSplock);
     
-    debug("panic: %s\n", exceptions[regs->intId]);
-    debug("panic: STOP:%x INT:%x\n",regs->errId,regs->intId);
-    debug("panic: RAX:%x RBX:%x RCX:%x RDX:%x RSP:%x RDI:%x RSI:%x\n", regs->rax, regs->rbx, regs->rcx,regs->rdx,regs->rsp, regs->rdi, regs->rsi);
-    debug("panic: R8:%x R9:%x R10:%x R11:%x R12:%x R13:%x R14:%x R15:%x\n",regs->r8,regs->r9,regs->r10,regs->r11,regs->r12,regs->r13,regs->r14,regs->r15);
-    debug("panic: RIP:%x CS:%x RFLAGS:%x KRSP: %x:%x\n",regs->rip, regs->cs, regs->rFlags, regs->ss,regs->kRsp);
-    mSpinlockDrop(&splockk);
+    printf(PANIC, "%s\n", exceptions[regs->intId]);
+    printf(PANIC, "STOP:%x INT:%x\n",regs->errId,regs->intId);
+    printf(PANIC, "RAX:%x RBX:%x RCX:%x RDX:%x RSP:%x RDI:%x RSI:%x\n", regs->rax, regs->rbx, regs->rcx,regs->rdx,regs->rsp, regs->rdi, regs->rsi);
+    printf(PANIC, "R8:%x R9:%x R10:%x R11:%x R12:%x R13:%x R14:%x R15:%x\n",regs->r8,regs->r9,regs->r10,regs->r11,regs->r12,regs->r13,regs->r14,regs->r15);
+    printf(PANIC, "RIP:%x CS:%x RFLAGS:%x KRSP: %x:%x\n",regs->rip, regs->cs, regs->rFlags, regs->ss,regs->kRsp);
+
+    mSpinlockDrop(&panicSplock);
+
     panic("---\n");
 }
 

@@ -1,6 +1,5 @@
 #include <idt.h>
-#include <vmm.h>
-#include <kernel.h>
+
 typedef struct {
     u16 OffsetLow;
     u16 Selector;
@@ -21,7 +20,6 @@ static IDTEntry idt[256];
 static IDTR     idtr;
 
 extern void idtLoad(IDTR *idtr);
-
 
 void idtSetDesc(u8 i, void* isr, u8 flags) {
     IDTEntry* entry = &idt[i];

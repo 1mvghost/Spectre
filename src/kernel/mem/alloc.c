@@ -4,6 +4,12 @@
 #include <vmm.h>
 #include <alloc.h>
 #include <mem.h>
+#include <stdio.h>
+
+/**
+ * TODO: major rewrite
+ */
+
 #define ALIGN		16
 
 #define REG_FREE 	0x0
@@ -15,41 +21,43 @@ struct HeapChunk {
 	struct HeapChunk  *Prev;
 	struct HeapChunk  *Nxt;
 };
-static struct HeapChunk *hp = 	0;
-static Splock reqSplock 	= 	ATOMIC_FLAG_INIT;
-static Splock allocSplock 	= 	ATOMIC_FLAG_INIT;
-static Splock freeSplock 	= 	ATOMIC_FLAG_INIT;
+struct HeapChunk *hpHead = 0;
 
-/* request pages */
+Splock reqSplock = ATOMIC_FLAG_INIT;
+Splock allocSplock = ATOMIC_FLAG_INIT;
+Splock freeSplock = ATOMIC_FLAG_INIT;
+
 bool spallocReq(size_t pages) {
-	//debug("spalloc: page request!\n");
+	if(pages <= 0) return false;
 
 	mSpinlockAcquire(&reqSplock);
-	void* p = VIRT(pmmAlloc(pages));
+
+	void* p = vmmAlloc(pages);
 	if(!p) {
 		debug("spalloc: cannot get a new page! probably ran out of memory!\n");	
 		mSpinlockDrop(&reqSplock);
-		return 0;
+		return false;
 	}
+
 	struct HeapChunk *h = p;
+
 	h->Size  	 = (pages*PAGE_SIZE)-sizeof(struct HeapChunk);
 	h->Type  	 = REG_FREE;
 	h->Nxt 	 	 = 0;
 	h->Prev		 = 0;
+
 	/* if not initalized */
-	if(!hp) {
-		hp=p;
+	if(!hpHead) {
+		hpHead = h;
 	} else {
 		/* extend */
-		struct HeapChunk *cur = hp;
-		while(cur && cur->Nxt) {
-			cur=cur->Nxt;
-		}
-
-		cur->Nxt = p;
+		struct HeapChunk *cur = hpHead;
+		while(cur && cur->Nxt) cur = cur->Nxt;
+		cur->Nxt = h;
 		cur->Nxt->Prev = cur;
 	}
 	mSpinlockDrop(&reqSplock);
+
 	return 1;
 }
 
@@ -69,14 +77,14 @@ void* malloc(size_t size) {
 
 	struct HeapChunk *fr = 0;
 
-	if(!hp) {
+	if(!hpHead) {
 		/* alloc the heap if didnt already */
 		if(!spallocReq(pages)) {
 			mSpinlockDrop(&allocSplock);
 			return 0;
 		}
 	}
-	struct HeapChunk *cur = hp;
+	struct HeapChunk *cur = hpHead;
 
 	while(cur) {
 		if(cur->Type==REG_FREE && (cur->Size == size || cur->Size >= size+sizeof(struct HeapChunk))) {
@@ -92,11 +100,9 @@ void* malloc(size_t size) {
 			mSpinlockDrop(&allocSplock);
 			return 0;
 		}
-		struct HeapChunk *l = hp;
-		while(l && l->Nxt) {
-			l=l->Nxt;
-		}
-		fr=l;
+		cur = hpHead;
+		while(cur->Nxt) cur = cur->Nxt;
+		fr = cur;
 	}
 
 	//debug("%x\n",fr);
@@ -138,7 +144,7 @@ void free(void* addr) {
 	/* double free check */
 	struct HeapChunk *ch = addr-sizeof(struct HeapChunk);
 
-	struct HeapChunk *cur = hp;
+	struct HeapChunk *cur = hpHead;
 	while(cur){
 		if(cur == addr-sizeof(struct HeapChunk)) {
 			goto free;
@@ -215,11 +221,11 @@ void* realloc(void* addr, size_t size) {
 
 }
 
-Splock splockdmp = ATOMIC_FLAG_INIT;
-void spdmp() {	
-	mSpinlockAcquire(&splockdmp);
+Splock dmpSplock = ATOMIC_FLAG_INIT;
+void dumpHeap() {	
+	mSpinlockAcquire(&dmpSplock);
 	int m=0;
-	struct HeapChunk *cur = hp;
+	struct HeapChunk *cur = hpHead;
 	while(cur) {
 		printf(INFO,"spalloc: %x > size:%d type:%d next:%x prev:%x\n",cur,cur->Size,cur->Type,cur->Nxt,cur->Prev);
 		m+=cur->Size+sizeof(struct HeapChunk);
@@ -227,5 +233,5 @@ void spdmp() {
 	}
 	
 	debug("--- %d\n",m);
-	mSpinlockDrop(&splockdmp);
+	mSpinlockDrop(&dmpSplock);
 }

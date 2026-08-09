@@ -6,15 +6,17 @@
 static u64 curX=0;
 static u64 curY=0;
 
-static u64 width=0;
-static u64 height=0;
+static u64 textWidth=0;
+static u64 textHeight=0;
 
 void consScroll(){
-    u64 row = height / FHEIGHT;
-    u64 r   = fbResX() * FHEIGHT;
+    u64 rows   = textHeight / FHEIGHT;
+    u64 rowPx  = fbResX() * FHEIGHT;
 
-    memmove((u8*)fbGetAddr(), (u8*)fbGetAddr()+r, (r*row)-r);
-    memset((u8*)(fbGetAddr()+(row-1)*r), 0, r);
+    memcpy((void*)fbGetAddr(), (void*)fbGetAddr() + rowPx, rowPx*(rows-1));
+
+    /* clear last row */
+    memset((u8*)(fbGetAddr()+(rows-1)*rowPx), 0, rowPx);
     
     curY-=FHEIGHT;
     curX=0;
@@ -24,7 +26,7 @@ void consNewline(){
     curY+=FHEIGHT;
     curX=0;
 
-    if(curY >= height){
+    if(curY >= textHeight){
         consScroll();
     }
 }
@@ -37,7 +39,7 @@ void consPutc(char ch) {
             consNewline();
             break;
         default:
-            if(curX>=width) {
+            if(curX>=textWidth) {
                 consNewline();
             }
             fontCh(curX,curY,ch);
@@ -48,7 +50,7 @@ void consPutc(char ch) {
     mSpinlockDrop(&putcSp);
 }
 void consInit() {
-    width  = ALIGN_DOWN(fbResX()/4, FWIDTH);
-    height = ALIGN_DOWN(fbResY(),   FHEIGHT);
+    textWidth  = ALIGN_DOWN(fbResX()/4, FWIDTH);
+    textHeight = ALIGN_DOWN(fbResY(),   FHEIGHT);
 
 }

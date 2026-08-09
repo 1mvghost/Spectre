@@ -1,101 +1,101 @@
 #include <vmm.h>
 #include <pmm.h>
+#include <debug.h>
 
-#define OFFSET(addr)              (addr&0xFFF)
-#define P1(addr)                  ((addr >> 12)&0x1FF)
-#define P2(addr)                  ((addr >> 21)&0x1FF)
-#define P3(addr)                  ((addr >> 30)&0x1FF)
-#define P4(addr)                  ((addr >> 39)&0x1FF)
+#define OFFSET(addr)              (((u64)addr) & 0xFFF)
+#define P1(addr)                  (((u64)addr >> 12) & 0x1FF)
+#define P2(addr)                  (((u64)addr >> 21) & 0x1FF)
+#define P3(addr)                  (((u64)addr >> 30) & 0x1FF)
+#define P4(addr)                  (((u64)addr >> 39) & 0x1FF)
 #define ATTRIBUTE_SET(ent,attrib) (*ent |= attrib)
 #define ATTRIBUTE_CLR(ent,attrib) (*ent &= ~attrib)
 #define FRAME_SET(ent,addr)       (*ent = (*ent & ~0b11111111111111111111111111111111111111111111111111000000000000) | addr)
 #define PAGE_PHYS_ADDR(p)         (p & ~0xFFF)
 
-typedef struct {
-    u64 Ent[512];
-} PageTable;
-
 static PageTable* p4;
 
-void vmmLoad(u64 *p4);
+void vmmLoad(void* p4);
 
-u64 vmmVirtToPhys(u64 virt) {
-    PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
-    PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
-    PageTable* p1 = (PageTable*) VIRT(p2->Ent[P2(virt)] & PAGE_ADDR_MASK);
-
-    return (u64)(p1->Ent[P1(virt)] & PAGE_ADDR_MASK) + OFFSET(virt);
+void* vmmPhysToVirt(u64 phys) {
+    return (void*)(phys + 0xffff800000000000);
 }
-void vmmMap(u64 virt, u64 phys, u64 n, u64 flag) {
-    while (n--) {
-        if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {
-            u64* ent = &p4->Ent[P4(virt)];
-            u64* fr = (u64*) pmmAlloc(1);
-            memset(VIRT(fr),0,4096);
-            ATTRIBUTE_SET(ent, PTE_PRESENT);
-            ATTRIBUTE_SET(ent, flag);
-            FRAME_SET    (ent, (u64)fr);
 
-        }
-        PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
-        if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) {
-            u64* ent = &p3->Ent[P3(virt)];
-            u64* fr = (u64*) pmmAlloc(1);
-            memset(VIRT(fr),0,4096);
-            ATTRIBUTE_SET(ent, PTE_PRESENT);
-            ATTRIBUTE_SET(ent, flag);
-            FRAME_SET    (ent, (u64)fr);
-        }
-        PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
-        if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) {
-            u64* ent = &p2->Ent[P2(virt)];
-            u64* fr = (u64*) pmmAlloc(1);
-            memset(VIRT(fr),0,4096);
-            ATTRIBUTE_SET(ent, PTE_PRESENT);
-            ATTRIBUTE_SET(ent, flag);
-            FRAME_SET    (ent, (u64)fr);
-        }
-        PageTable* p1 = (PageTable*) VIRT(p2->Ent[P2(virt)] & PAGE_ADDR_MASK);
-        u64* ent = &p1->Ent[P1(virt)];
-        if(!(p1->Ent[P1(virt)] & PTE_PRESENT)) {
-            ATTRIBUTE_SET(ent, PTE_PRESENT);
-            ATTRIBUTE_SET(ent, flag);
-            FRAME_SET    (ent, (u64)phys);
-        }
-        phys+=PAGE_SIZE; virt+=PAGE_SIZE;
-    }
+PageTable* vmmGetPageTable(u64 ent) {
+    return (PageTable*) vmmPhysToVirt(ent & PAGE_ADDR_MASK);
 }
-void vmmUnmap(u64 virt, u64 n) {
-    while (n--) {
-        if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) {
-            virt+=PAGE_SIZE;
-            continue;
-        }
-        PageTable* p3 = (PageTable*) VIRT(p4->Ent[P4(virt)] & PAGE_ADDR_MASK);
-        if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) {
-            virt+=PAGE_SIZE;
-            continue;
-        }
-        PageTable* p2 = (PageTable*) VIRT(p3->Ent[P3(virt)] & PAGE_ADDR_MASK);
-        if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) {
-            virt+=PAGE_SIZE;
-            continue;
-        }
-        PageTable* p1 = (PageTable*) VIRT(p2->Ent[P2(virt)] & PAGE_ADDR_MASK);
-        u64* ent = &p1->Ent[P1(virt)];
-        p1->Ent[P1(virt)] = 0;
-        invlpg(ent);
-        virt+=PAGE_SIZE;
-        continue;
-    }
+
+u64 vmmVirtToPhys(void* virt) {
+    return ((u64)virt - 0xffff800000000000);
+}
+
+void vmmAllocPTE(u64* ent, u64 flag) {
+    u64 fr = (u64) pmmAlloc(1);
+
+    memset(vmmPhysToVirt(fr), 0, PAGE_SIZE);
+
+    ATTRIBUTE_SET(ent, PTE_PRESENT);
+    ATTRIBUTE_SET(ent, flag);
+    FRAME_SET    (ent, fr);
+}
+void vmmMap(void* virt, u64 phys, u64 flag) {
+    if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) vmmAllocPTE(&p4->Ent[P4(virt)], flag);
+
+    PageTable* p3 = (PageTable*) vmmGetPageTable(p4->Ent[P4(virt)]);
+
+    if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) vmmAllocPTE(&p3->Ent[P3(virt)], flag);
+
+    PageTable* p2 = (PageTable*) vmmGetPageTable(p3->Ent[P3(virt)]);
     
-}
-void vmmInit(){
-    /* page table copy */
-    u64 p4p = 0;
-    asm("movq %%cr3, %0" : "=r"(p4p));
-    p4 = (PageTable*)VIRT(PAGE_PHYS_ADDR(p4p));
+    if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) vmmAllocPTE(&p2->Ent[P2(virt)], flag);
 
-    vmmLoad(PHYS((u64)p4));
+    PageTable* p1 = (PageTable*) vmmGetPageTable(p2->Ent[P2(virt)]);
+    
+    u64* ent = &p1->Ent[P1(virt)];
+    if(!(p1->Ent[P1(virt)] & PTE_PRESENT)) {
+        ATTRIBUTE_SET(ent, PTE_PRESENT);
+        ATTRIBUTE_SET(ent, flag);
+        FRAME_SET    (ent, (u64)phys);
+    }
+}
+void vmmMapPages(void* virt, u64 phys, u64 flag, int n) {
+    while(n--) {
+        vmmMap(virt, phys, flag);
+        virt += PAGE_SIZE, phys += PAGE_SIZE;
+    }
+}
+void vmmUnmap(void *virt) {
+    if(!(p4->Ent[P4(virt)] & PTE_PRESENT)) return;
+
+    PageTable* p3 = (PageTable*) vmmGetPageTable(p4->Ent[P4(virt)]);
+    if(!(p3->Ent[P3(virt)] & PTE_PRESENT)) return;
+
+    PageTable* p2 = (PageTable*) vmmGetPageTable(p3->Ent[P3(virt)]);
+    if(!(p2->Ent[P2(virt)] & PTE_PRESENT)) return;
+
+    PageTable* p1 = (PageTable*) vmmGetPageTable(p2->Ent[P2(virt)]);
+    u64* ent = &p1->Ent[P1(virt)];
+    p1->Ent[P1(virt)] = 0;
+    invlpg(ent);
 }
 
+void vmmUnmapPages(void *virt, int n) {
+    while(n--) {
+        vmmUnmap(virt);
+        virt += PAGE_SIZE;
+    }
+}
+
+void* vmmAlloc(u64 pages) {
+    return vmmPhysToVirt(pmmAlloc(pages));
+}
+
+void vmmInit() {
+
+    /* copy page tables from limine, there is no need to make new ones because limine does everything beautifully */
+
+    u64 p4Phys = 0;
+    asm("movq %%cr3, %0" : "=r"(p4Phys));
+    p4 = (PageTable*) vmmPhysToVirt(PAGE_PHYS_ADDR(p4Phys));
+
+    vmmLoad((void*) p4Phys);
+}

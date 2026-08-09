@@ -1,6 +1,5 @@
 #include <ide.h>
 #include <stdio.h>
-#include <kernel.h>
 #include <vmm.h>
 #include <alloc.h>
 #include <debug.h>
@@ -79,6 +78,10 @@ struct {
     u32 Size;
     u8  Model[41];
 } dev[4];
+
+/**
+ * TODO: cleanup
+ */
 
 //static u8 buf[2048] = {0};
 static u8* buf;
@@ -240,7 +243,7 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
             for(i = 0; i<sectAmount;i++) {
                 u8 err = idePoll(ch,1);
                 if(err){
-                    panic("IDE DEVICE FAULT\n");
+                    debug("ide: DEVICE FAULT\n");
                 }
                 asm("rep insw" : : "c"(words), "d"(bus), "D"(buf));
                 buf += (words*2);
@@ -260,7 +263,7 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
             idePoll(ch,0);
         }
     } else {
-        panic("UNSUPPORTED!\n");
+        debug("ide: UNSUPPORTED");
     }
     free(lbaIo);
     return 0;

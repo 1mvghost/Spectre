@@ -1,12 +1,15 @@
 #include <limine.h>
 #include <acpi.h>
-#include <stdio.h>
 #include <pci.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <debug.h>
 #include <boot.h>
+#include <panic.h>
 
+/**
+ * TODO: uacpi
+ */
 typedef struct {
    char signature[4];
    u32 length;
@@ -100,10 +103,10 @@ static int SLP_TYPb;
 
 void acpiOut(GenericAddress gAddr, u8 val) {
    if(gAddr.addrSpace == 0) {
-      if(gAddr.accessSize <= 1) *((u8*)VIRT(gAddr.addr))  = val;
-      if(gAddr.accessSize == 2) *((u16*)VIRT(gAddr.addr)) = val;
-      if(gAddr.accessSize == 3) *((u32*)VIRT(gAddr.addr)) = val;
-      if(gAddr.accessSize == 4) *((u64*)VIRT(gAddr.addr)) = val;
+      if(gAddr.accessSize <= 1) *((u8*) vmmPhysToVirt(gAddr.addr)) = val;
+      if(gAddr.accessSize == 2) *((u16*)vmmPhysToVirt(gAddr.addr)) = val;
+      if(gAddr.accessSize == 3) *((u32*)vmmPhysToVirt(gAddr.addr)) = val;
+      if(gAddr.accessSize == 4) *((u64*)vmmPhysToVirt(gAddr.addr)) = val;
    }
    if(gAddr.addrSpace == 1) {
       if(gAddr.accessSize <= 1) out8 ((u16)gAddr.addr, val);
@@ -112,9 +115,9 @@ void acpiOut(GenericAddress gAddr, u8 val) {
    }
 }
 void acpiFadt() {
-   if(!memcmp(VIRT(fadt->Dsdt), "DSDT", 4)) {
-      char* s5 = (char*) VIRT(fadt->Dsdt+36);
-      int* len = VIRT((fadt->Dsdt+1)-36);
+   if(!memcmp(vmmPhysToVirt(fadt->Dsdt), "DSDT", 4)) {
+      char* s5 = (char*) vmmPhysToVirt((fadt->Dsdt+36));
+      int* len = (int*) vmmPhysToVirt(((fadt->Dsdt+1)-36));
       while(len-- > 0) {
          if(!memcmp(s5, "_S5_",3)) {
             break;
@@ -139,7 +142,7 @@ void acpiFadt() {
 void acpiRsdt() {
    for(u32 i = 0; i < (rsdt->h.length - sizeof(rsdt->h)) / 4; i++) {
       
-      u64 a = (u64)VIRT(rsdt->sdtPtr[i]);
+      void* a = vmmPhysToVirt(rsdt->sdtPtr[i]);
       SDTHeader *h = (SDTHeader*) a;
       debug("acpi: FOUND TABLE: %c%c%c%c (%x)\n", h->signature[0],h->signature[1],h->signature[2],h->signature[3],a);
       if(!memcmp(h->signature, "FACP", 4)) {
@@ -174,7 +177,7 @@ void acpiInit(){
       return;
    }
    rsdp = (RSDP*) rsdpAddr;
-   rsdt = (RSDT*) VIRT(rsdp->rsdt);
+   rsdt = (RSDT*) vmmPhysToVirt(rsdp->rsdt);
    debug("acpi: ACPI OEM: %c%c%c%c%c%c\n",rsdp->oemId[0],rsdp->oemId[1],rsdp->oemId[2],rsdp->oemId[3],rsdp->oemId[4],rsdp->oemId[5]);
    debug("acpi: RSDT ADDR: %x\n",rsdp->rsdt);
    acpiRsdt();

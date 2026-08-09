@@ -1,5 +1,7 @@
-#ifndef KERNEL_H
-#define KERNEL_H
+#ifndef PANIC_H
+#define PANIC_H
+
+#include <util.h>
 
 struct Stacktrace{
    struct Stacktrace* rbp;

@@ -8,19 +8,14 @@ typedef unsigned long long int u64;
 typedef u64 size_t;
 
 #define U64_LOW(addr) (addr & 0xffffffff)
-#define U64_HIGH(addr)(addr>>32 & 0xffffffff)
+#define U64_HIGH(addr)((addr >> 32) & 0xffffffff)
+
+#define U64(low, high)(((u64)high << 32) + low)
 
 /* credit: https://github.com/embeddedartistry/libmemory/blob/master/src/aligned_malloc.c */
 #define ALIGN_UP(num,align)     (((num) + ((align)-1)) & ~((align)-1))
 
 #define ALIGN_DOWN(num,align)   (num & ~((align)-1))
-
-#include <stdio.h>
-#include <kernel.h>
-
-#define INFO 1
-#define ERR 2
-#define PANIC 3
 
 static inline void out8(u16 port, u8 val)
 {
@@ -67,7 +62,7 @@ static inline void ins32(u16 port, u32 *buf, int q) {
         buf[i]=in32(port);
     }
 }
-static inline void memset(void *dst, u8 value, int n) {
+static inline void memset(void* dst, u8 value, int n) {
     u8 *d = dst;
 
     while (n-- > 0) {
@@ -150,7 +145,7 @@ static inline int strlen(char* s) {
 static inline void cpuid(u32 *a, u32 *b, u32 *c, u32 *d) {
     asm volatile("cpuid":"=b"(*b),"=c"(*c),"=d"(*d):"a"(*a));
 }
-static inline void invlpg(u64* addr) {
+static inline void invlpg(void* addr) {
     asm volatile("invlpg (%0)" :: "r"(addr) : "memory");
 }
 

@@ -4,5 +4,6 @@
 *.txt
 iso
 build
+test
 .vscode
 kernel.sys

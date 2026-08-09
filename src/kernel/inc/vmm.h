@@ -1,5 +1,6 @@
 #ifndef VMM_H
 #define VMM_H
+
 #define PAGE_SIZE           0x1000 //4096
 #define PAGE_ADDR_MASK      0x000ffffffffff000
 #define	PTE_PRESENT			1		    //0000000000000000000000000000001
@@ -14,16 +15,23 @@
 #define	PTE_LV4_GLOBAL		0x200		//0000000000000000000001000000000
 #define PTE_FRAME			0x7FFFF000 	//0000000000000000000000000000000000000000000000000000111111111111
 
-#define VIRT(p)             (void*)((u64)(p)|0xffff800000000000)
-
-/* not really used anymore but kept for a couple things */
-#define PHYS(p)             (void*)((u64)(p)-0xffff800000000000)
-
 #include <util.h>
 
+typedef struct {
+    u64 Ent[512];
+} PageTable;
+
 void vmmInit();
-u64 vmmVirtToPhys(u64 virt);
-void vmmMap(u64 virt, u64 phys, u64 n, u64 flag);
-void vmmUnmap(u64 virt, u64 n);
+
+void vmmMapPages(void* virt, u64 phys, u64 flag, int n);
+void vmmUnmapPages(void *virt, int n);
+
+void vmmMap(void* virt, u64 phys, u64 flag);
+void vmmUnmap(void* virt);
+
+u64 vmmVirtToPhys(void* virt);
+void* vmmPhysToVirt(u64 phys);
+
+void* vmmAlloc(u64 pages);
 
 #endif

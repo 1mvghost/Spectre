@@ -1,6 +1,8 @@
 #include <debug.h>
 #include <stdarg.h>
 #include <mem.h>
+#include <stdio.h>
+
 #define COM1 0x3F8
 
 Splock debugSplock = ATOMIC_FLAG_INIT;

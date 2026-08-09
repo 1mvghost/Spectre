@@ -1,5 +1,6 @@
 #ifndef AHCI_H
 #define AHCI_H
+
 #include <util.h>
 
 typedef volatile struct {
@@ -26,6 +27,6 @@ typedef volatile struct {
 
 bool ahciRead(int p, u64 lba, u32 sectAmount, void* buf);
 bool ahciWrite(int p, u64 lba, u32 sectAmount, void* buf);
-void ahciInit(u32 bar5);
+void ahciInit(u64 bar5);
 
 #endif
