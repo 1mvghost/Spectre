@@ -1,21 +1,26 @@
 # spctrx
-spctrx is a 64-Bit Hobby Kernel made in C. It uses the [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
-![GitHub commit activity](https://img.shields.io/github/commit-activity/m/1mvghost/spctrx)
+spctrx is a 64-Bit Hobby Kernel made in C. It uses [Limine Bootloader](https://github.com/limine-bootloader/limine) for booting.
+</br>
 
-# * FEATURES *
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/1mvghost/spctrx) 
+</br>
+
+![spctrx](screenshots/1.png)
+
+# * features *
 * AHCI & IDE Disk Drivers <br/>
 * ACPI <br/>
 * PMM <br/>
-* Basic Heap Allocator <br/>
+* Heap Allocator <br/>
 * VFS <br/>
 * SMP </br>
 
-# * UPCOMING FEATURES *
+# * upcoming *
 * User Mode <br/>
 * Multitasking <br/>
 * ..and much more</br>
 
-# * COMPILING *
+# * compiling *
 (there is really no need to compile, the release is usually in the "Releases" tab)
 
 1. Clone the repository
@@ -29,7 +34,7 @@ make all
 ```
 3. If everything goes right, you now have the ISO which you can use to boot the OS :)
 
-# * BOOTING *
+# * booting *
 - real hardware: flash the ISO file onto an USB stick (with dd, Rufus etc) and use your BIOS's Boot Menu to boot from the USB
 - QEMU/Bochs: you can use the scripts found in the "tools" folder:
 ```bash
