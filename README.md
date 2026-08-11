@@ -36,10 +36,9 @@ make all
 
 # * booting *
 - real hardware: flash the ISO file onto an USB stick (with dd, Rufus etc) and use your BIOS's Boot Menu to boot from the USB
-- QEMU/Bochs: you can use the scripts found in the "tools" folder:
+- QEMU: you can use the scripts found in the "tools" folder:
 ```bash
 qemu.sh
 qemuUefi.sh
-bochs.sh
 ```
 - VBox: mount the ISO as cdrom and use the Boot Menu to boot from it
