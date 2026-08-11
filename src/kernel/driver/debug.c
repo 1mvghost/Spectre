@@ -1,57 +1,58 @@
 #include <debug.h>
-#include <stdarg.h>
 #include <mem.h>
+#include <stdarg.h>
 #include <stdio.h>
 
 #define COM1 0x3F8
 
 Splock debugSplock = ATOMIC_FLAG_INIT;
 int debugEmpty() {
-    return in8(COM1+5) & 0x20;
+  return in8(COM1 + 5) & 0x20;
 }
 
 Splock cSplock = ATOMIC_FLAG_INIT;
 void debugPutc(char c) {
-    mSpinlockAcquire(&cSplock);
-    while(debugEmpty() == 0) {}
+  mSpinlockAcquire(&cSplock);
+  while (debugEmpty() == 0) {
+  }
 
-    out8(COM1,c);
-    mSpinlockDrop(&cSplock);
+  out8(COM1, c);
+  mSpinlockDrop(&cSplock);
 }
 
 void debug(char* fmt, ...) {
-    mSpinlockAcquire(&debugSplock);
-    va_list va;
-    va_start(va,fmt);
+  mSpinlockAcquire(&debugSplock);
+  va_list va;
+  va_start(va, fmt);
 
-    u8 buf[1024];
-    memset(buf,0,1024);
-    vsprintf(buf,fmt,va);
+  u8 buf[1024];
+  memset(buf, 0, 1024);
+  vsprintf(buf, fmt, va);
 
-    for(int i = 0; i < 1024; i++) {
-        if(!buf[i]) break;
-        debugPutc(buf[i]);
-    }
+  for (int i = 0; i < 1024; i++) {
+    if (!buf[i])
+      break;
+    debugPutc(buf[i]);
+  }
 
-    va_end(va);
+  va_end(va);
 
-    mSpinlockDrop(&debugSplock);
+  mSpinlockDrop(&debugSplock);
 }
 
 void debugInit() {
-    out8(COM1 + 1, 0x00);
-    out8(COM1 + 3, 0x80);
-    out8(COM1 + 0, 0x03);
-    out8(COM1 + 1, 0x00);
-    out8(COM1 + 3, 0x03);
-    out8(COM1 + 2, 0xC7);
-    out8(COM1 + 4, 0x0B);
-    out8(COM1 + 4, 0x1E);
-    out8(COM1 + 0, 0xAE); 
+  out8(COM1 + 1, 0x00);
+  out8(COM1 + 3, 0x80);
+  out8(COM1 + 0, 0x03);
+  out8(COM1 + 1, 0x00);
+  out8(COM1 + 3, 0x03);
+  out8(COM1 + 2, 0xC7);
+  out8(COM1 + 4, 0x0B);
+  out8(COM1 + 4, 0x1E);
+  out8(COM1 + 0, 0xAE);
 
-   if(in8(COM1 + 0) != 0xAE) {
-      return;
-   }
-   out8(COM1 + 4, 0x0F);
-
+  if (in8(COM1 + 0) != 0xAE) {
+    return;
+  }
+  out8(COM1 + 4, 0x0F);
 }

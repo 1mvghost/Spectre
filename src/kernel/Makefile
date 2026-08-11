@@ -1,6 +1,7 @@
 .PHONY: all tmp
 
 #Dirs
+
 BUILD?=./build
 KERNEL_BUILD?=./
 
@@ -10,12 +11,18 @@ SRC_DIRS=$(shell find ./* -type d)
 TMP_DIRS=$(patsubst ./%, $(BUILD)/%, $(SRC_DIRS))
 
 #Tools
-GCC=gcc #/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
-GCCFLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic -fno-stack-protector
+
+C=gcc #/usr/local/x86_64elfgcc/bin/x86_64-elf-gcc
+C_FLAGS=-I$(INC)/ -ffreestanding -m64 -g -nostdlib -Wall -Wextra -mcmodel=kernel -mno-red-zone -fno-common -fno-pic -fno-stack-protector
+
 LD=ld #/usr/local/x86_64elfgcc/bin/x86_64-elf-ld
-NASM=nasm
+LD_FLAGS=-T link.ld -nostdlib -z max-page-size=4096
+
+ASM=nasm
+ASM_FLAGS=-f elf64
 
 #Misc
+
 ASM_SOURCE=$(shell find . -name "*.asm")
 ASM_OBJ=$(patsubst ./%.asm, $(BUILD)/%.asm.o, $(ASM_SOURCE))
 
@@ -28,10 +35,12 @@ tmp:
 all: tmp $(KERNEL_BUILD)
 
 $(BUILD)/%.asm.o: %.asm
-	@echo "* NASM * $<"
-	@$(NASM) -f elf64 $< -o $@
+	@echo "* asm: $<"
+	@$(ASM) $(ASM_FLAGS) $< -o $@
+
 $(BUILD)/%.c.o: %.c
-	@echo "* GCC *  $<"
-	@$(GCC) $(GCCFLAGS) $< -o $@ -c
+	@echo "* c:   $<"
+	@$(C) $(C_FLAGS) $< -o $@ -c
+
 $(KERNEL_BUILD): $(ASM_OBJ) $(C_OBJ)
-	@$(LD) -o $@ $^ -T link.ld -nostdlib -z max-page-size=4096
+	@$(LD) -o $@ $^ $(LD_FLAGS)

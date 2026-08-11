@@ -6,7 +6,7 @@
 /* make stuff more readable */
 typedef atomic_flag Splock;
 
-void mSpinlockAcquire(Splock *l);
-void mSpinlockDrop(Splock *l);
+void mSpinlockAcquire(Splock* l);
+void mSpinlockDrop(Splock* l);
 
 #endif

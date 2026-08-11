@@ -3,9 +3,9 @@
 
 #include <util.h>
 
-struct Stacktrace{
-   struct Stacktrace* rbp;
-   u64                rip;
+struct Stacktrace {
+  struct Stacktrace* rbp;
+  u64 rip;
 };
 void panic(char* err);
 

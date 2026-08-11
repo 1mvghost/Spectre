@@ -3,6 +3,6 @@
 #include <util.h>
 #include <vfs.h>
 
-void tmpInit(struct FsMnt *mnt);
+void tmpInit(struct FsMnt* mnt);
 
 #endif

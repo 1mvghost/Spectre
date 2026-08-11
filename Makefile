@@ -14,11 +14,13 @@ KERNEL_BUILD=kernel.sys
 ISO_BUILD	=$(BUILD)/os.iso
 LIMINE_VER	=v11.x
 
+#Tools
+FORMAT=clang-format
+
 all: clean kernel limine iso
 
 $(BUILD):
 	@mkdir -p $(BUILD)
-
 
 kernel: $(BUILD)
 	@make -C $(KERNEL_SRC) BUILD=$(abspath $(BUILD)) KERNEL_BUILD=$(abspath $(KERNEL_BUILD)) all
@@ -45,5 +47,9 @@ iso: $(BUILD)
 	@$(LIMINE)/limine bios-install $(ISO_BUILD)
 
 	@echo "*** iso ready: $(ISO_BUILD)"
+
+format:
+	@find $(SRC) -regex '.*\.\(c\|h\)' ! -name "*limine*" -exec $(FORMAT) -style=file -i {} \;
+
 clean:
 	rm -rf $(BUILD) $(ISO) $(KERNEL_BUILD)

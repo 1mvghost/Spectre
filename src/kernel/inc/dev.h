@@ -4,6 +4,6 @@
 #include <util.h>
 #include <vfs.h>
 
-void devInit(struct FsMnt *mnt);
+void devInit(struct FsMnt* mnt);
 
 #endif
