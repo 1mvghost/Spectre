@@ -9,6 +9,7 @@
 #include <idt.h>
 #include <isr.h>
 #include <limine.h>
+#include <ll.h>
 #include <mem.h>
 #include <mmap.h>
 #include <mp.h>
@@ -111,6 +112,19 @@ void test() {
 #ifdef CONS_TEST
   for (int i = 0; i < 100000; i++) {
     printf(0, "abb");
+  }
+#endif
+#ifdef LL_TEST
+  struct LinkedList ll;
+  llAlloc(&ll);
+
+  llAppend(&ll, "Hello World test");
+  llAppend(&ll, "Linked list test 123");
+
+  struct LLNode* cur = ll.Head->Next;
+  while (cur) {
+    printf(INFO, "%s\n", cur->Data);
+    cur = cur->Next;
   }
 #endif
 }
