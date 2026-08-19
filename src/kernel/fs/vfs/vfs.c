@@ -1,6 +1,7 @@
 #include <alloc.h>
 #include <debug.h>
 #include <dev.h>
+#include <ll.h>
 #include <mem.h>
 #include <ops.h>
 #include <stdio.h>
@@ -8,114 +9,101 @@
 #include <vfs.h>
 #include <vmm.h>
 
-static struct FsMnt mntTable[64];
-static struct FsNode* root;
-static int mntI = 1;
+struct LinkedList mntTable;
+struct FsNode* root;
 
 struct FsNode* vfsAlloc(struct FsMnt* mnt, u8 type) {
   struct FsNode* n = malloc(sizeof(struct FsNode));
+  
   n->Type = type;
   n->Mnt = mnt;
+  n->Ops = 0;
+  
   if (mnt->Root && mnt->Root->Ops) {
     n->Ops = mnt->Root->Ops;
   }
   return n;
 }
-int vfsFindMnt(struct FsNode* n) {
+struct FsMnt* vfsFindMnt(struct FsNode* n) {
   if (!n)
     return 0;
-  for (int i = 1; i < 64; i++) {
-    if (!strlen(mntTable[i].Path)) {
-      break;
-    }
-    if (n == mntTable[i].Mnt) {
-      return i;
-    }
+
+  struct LLNode* cur = mntTable.Head->Next;
+
+  while (cur) {
+    struct FsMnt* curMnt = cur->Data;
+
+    if (curMnt->Mnt == n)
+      return curMnt;
+
+    cur = cur->Next;
   }
+
   return 0;
 }
 struct FsNode* vfsLook(struct FsNode* cur, char* name) {
-  struct FsNode* c = 0;
   if (!cur)
     return 0;
   if (cur->Type == TYPE_FILE)
     return 0;
-
-  if (cur->Ops && cur->Ops->Lookup) {
-    c = cur->Ops->Lookup(cur, name);
-  } else {
+  if (!(cur->Ops && cur->Ops->Lookup))
     return 0;
-  }
 
-  if (!c)
-    return 0;
+  struct FsNode* c = cur->Ops->Lookup(cur, name);
 
   /* mnt check */
-  int mnt = vfsFindMnt(c);
-  if (mnt) {
-    c = mntTable[mnt].Root;
-  }
+  struct FsMnt* mnt = vfsFindMnt(c);
+  if (mnt)
+    c = mnt->Root;
+
   return c;
 }
 struct FsNode* vfsLookup(char* path) {
   if (!path)
     return 0;
-  if (*path == '\0')
-    return 0;
 
   struct FsNode* cur = root;
 
-  int mnt = vfsFindMnt(cur);
-  if (mnt) {
-    cur = mntTable[mnt].Root;
-  }
+  struct FsMnt* mnt = vfsFindMnt(cur);
+  if (mnt)
+    cur = mnt->Root;
 
-  if (!strcmp(path, "/")) {
-    return cur;
-  }
-  char* sp = malloc(64);
-  memset(sp, 0, 64);
+  char sp[64];
+  sp[0] = '\0';
 
   char* p = path;
   int i = 0;
+
   while (*p) {
     if (*p == '/') {
       if (i > 0) {
-        // debug("%s\n",sp);
-        struct FsNode* l = vfsLook(cur, sp);
-        if (!l) {
-          free(sp);
-          return 0;
-        }
+        cur = vfsLook(cur, sp);
 
-        cur = l;
-        /* putting a / after a file is not valid ! */
-        if (l->Type == TYPE_FILE) {
-          // debug("file\n");
-          free(sp);
+        if (!cur)
           return 0;
-        }
+        if (cur->Type == TYPE_FILE)
+          return 0;
       }
-      memset(sp, 0, 64);
+
+      sp[0] = '\0';
       i = 0;
+
     } else {
       sp[i] = *p;
+      if (i == 64)
+        continue;
+
       i++;
+      sp[i] = '\0';
     }
 
     ++p;
   }
 
-  /* check if theres anything left to handle */
-  if (strlen(sp)) {
+  /* check if there's anything left to handle */
+  if (sp[0] != '\0')
     cur = vfsLook(cur, sp);
-    if (!cur) {
-      free(sp);
-      return 0;
-    }
-  }
 
-  free(sp);
   return cur;
 }
 
@@ -140,31 +128,34 @@ void vfsMount(char* path, char* dev, char* type) {
 
   mSpinlockAcquire(&mntSplock);
 
-  memset(&mntTable[mntI], 0, sizeof(struct FsMnt));
+  struct FsMnt* mnt = malloc(sizeof(struct FsMnt));
 
-  strcpy(mntTable[mntI].Type, type);
-  strcpy(mntTable[mntI].Dev, dev);
-  strcpy(mntTable[mntI].Path, path);
+  strcpy(mnt->Type, type);
+  strcpy(mnt->Dev, dev);
+  strcpy(mnt->Path, path);
 
-  mntTable[mntI].Mnt = l;
+  mnt->Mnt = l;
 
   /* todo : find a better way */
   if (type == "dev") {
-    devInit(&mntTable[mntI]);
+    devInit(mnt);
   }
   if (type == "tmp") {
-    tmpInit(&mntTable[mntI]);
+    tmpInit(mnt);
   }
 
-  mntI++;
+  llAppend(&mntTable, mnt);
+
   debug("vfs: MOUNTED %s\n", path);
 
   mSpinlockDrop(&mntSplock);
 }
 
 void vfsInit() {
+  llAlloc(&mntTable);
+
   root = malloc(sizeof(struct FsNode));
 
   vfsMount("/", "", "tmp");
-  vfsMount("/dev/", "", "dev");
+  vfsMount("/dev", "", "dev");
 }

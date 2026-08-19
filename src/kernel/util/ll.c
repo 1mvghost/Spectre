@@ -2,8 +2,11 @@
 #include <ll.h>
 
 void llAlloc(struct LinkedList* ll) {
-  ll->Head = malloc(sizeof(struct LLNode));
-  ll->Tail = ll->Head;
+  struct LLNode* head = malloc(sizeof(struct LLNode));
+  memset(head, 0, sizeof(struct LLNode));
+
+  ll->Head = head;
+  ll->Tail = head;
 }
 
 void llAppend(struct LinkedList* ll, void* data) {

@@ -1,6 +1,8 @@
 #include <ahci.h>
+#include <alloc.h>
 #include <debug.h>
 #include <ide.h>
+#include <ll.h>
 #include <pci.h>
 #include <stdio.h>
 #include <vmm.h>
@@ -48,8 +50,7 @@ static char* class[32] = {"Unknown",
                           "Encryption Controller",
                           "Signal Processing Controller"};
 
-static PCIDevice pciDev[256];
-static u64 devI = 0;
+struct LinkedList pciDevices;
 
 u32 pciIn32(u32 bus, u32 dev, u32 func, u32 offset) {
   u32 address;
@@ -101,6 +102,7 @@ void pciReadData(u32 bus, u32 dev, u32 f, PCIDevice* buf) {
       u8 header =         pciIn8Low(bus,dev,f,14);
   */
 
+  buf->Vendor = pciIn16(bus, dev, f, 0);
   buf->Device = pciIn16(bus, dev, f, 2);
   buf->Cmd = pciIn16(bus, dev, f, 4);
   buf->Status = pciIn16(bus, dev, f, 6);
@@ -124,7 +126,8 @@ void pciCheckDevice(u32 bus, u32 dev) {
     u16 vendor = pciIn16(bus, dev, f, 0);
     /* 0xFFFF - NONEXISTENT DEVICE */
     if (vendor != 0xFFFF) {
-      PCIDevice* d = &pciDev[devI];
+      PCIDevice* d = (PCIDevice*)malloc(sizeof(PCIDevice));
+      llAppend(&pciDevices, d);
 
       pciReadData(bus, dev, f, d);
 
@@ -135,7 +138,6 @@ void pciCheckDevice(u32 bus, u32 dev) {
           d->Bar1, d->Bar2, d->Bar3, d->Bar4, d->Bar5, d->Header);
 
       pciHandle(d);
-      devI++;
     }
   }
 }
@@ -147,5 +149,6 @@ void pciEnum() {
   }
 }
 void pciInit() {
+  llAlloc(&pciDevices);
   pciEnum();
 }
