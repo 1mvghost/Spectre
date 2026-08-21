@@ -2,12 +2,56 @@
 #include <stdio.h>
 #include <util.h>
 
+static const char* exceptions[32] = {"Div By Zero",
+                                     "Debug",
+                                     "NMI",
+                                     "Breakpoint",
+                                     "Overflow",
+                                     "Bound Range Exceeded",
+                                     "Invalid Opcode",
+                                     "Device Not Available",
+                                     "Double Fault",
+                                     "Coprocessor Segment Overrun",
+                                     "Bad TSS",
+                                     "Segment Not Present",
+                                     "Stack-Segment Fault",
+                                     "General Protection Fault",
+                                     "Page Fault",
+                                     "Unknown",
+                                     "x87 Floating-Point",
+                                     "Alignment Check",
+                                     "Machine Check",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown",
+                                     "Unknown"};
+
+void panicIsr(Regs* regs) {
+  printf(PANIC, "%s\n", exceptions[regs->intId]);
+  printf(PANIC, "STOP:%x INT:%x\n", regs->errId, regs->intId);
+  printf(PANIC, "RAX:%x RBX:%x RCX:%x RDX:%x RSP:%x RDI:%x RSI:%x\n", regs->rax,
+         regs->rbx, regs->rcx, regs->rdx, regs->rsp, regs->rdi, regs->rsi);
+  printf(PANIC, "R8:%x R9:%x R10:%x R11:%x R12:%x R13:%x R14:%x R15:%x\n",
+         regs->r8, regs->r9, regs->r10, regs->r11, regs->r12, regs->r13,
+         regs->r14, regs->r15);
+  printf(PANIC, "RIP:%x CS:%x RFLAGS:%x\n", regs->rip, regs->cs, regs->rFlags);
+  printf(PANIC, "SS:%x KRSP:%x\n", regs->ss, regs->kRsp);
+  panic("");
+}
 void panic(char* err) {
   u32 eax = 1, ebx, ecx, edx;
   cpuid(&eax, &ebx, &ecx, &edx);
   u32 cpuId = (ebx >> 24) & 0xFF;
 
-  printf(PANIC, "%s", err);
+  if (*err != '\0')
+    printf(PANIC, "%s", err);
   printf(PANIC, "CPU: %d\n", cpuId);
   printf(PANIC, "--- Kernel Call Trace ---\n");
 

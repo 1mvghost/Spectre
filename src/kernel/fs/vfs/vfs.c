@@ -14,11 +14,11 @@ struct FsNode* root;
 
 struct FsNode* vfsAlloc(struct FsMnt* mnt, u8 type) {
   struct FsNode* n = malloc(sizeof(struct FsNode));
-  
+
   n->Type = type;
   n->Mnt = mnt;
   n->Ops = 0;
-  
+
   if (mnt->Root && mnt->Root->Ops) {
     n->Ops = mnt->Root->Ops;
   }
