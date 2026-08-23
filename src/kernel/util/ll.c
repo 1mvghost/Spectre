@@ -10,11 +10,13 @@ void llAlloc(struct LinkedList* ll) {
 }
 
 void llAppend(struct LinkedList* ll, void* data) {
-  ll->Tail->Next = malloc(sizeof(struct LLNode));
-  ll->Tail = ll->Tail->Next;
+  struct LLNode* tail = malloc(sizeof(struct LLNode));
+  memset(tail, 0, sizeof(struct LLNode));
 
-  ll->Tail->Data = data;
-  ll->Tail->Next = 0;
+  tail->Data = data;
+
+  ll->Tail->Next = tail;
+  ll->Tail = ll->Tail->Next;
 }
 
 void llFree(struct LinkedList* ll) {

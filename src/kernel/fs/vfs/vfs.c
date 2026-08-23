@@ -14,14 +14,15 @@ struct FsNode* root;
 
 struct FsNode* vfsAlloc(struct FsMnt* mnt, u8 type) {
   struct FsNode* n = malloc(sizeof(struct FsNode));
+  memset(n, 0, sizeof(struct FsNode));
 
   n->Type = type;
   n->Mnt = mnt;
   n->Ops = 0;
 
-  if (mnt->Root && mnt->Root->Ops) {
+  if (mnt->Root)
     n->Ops = mnt->Root->Ops;
-  }
+
   return n;
 }
 struct FsMnt* vfsFindMnt(struct FsNode* n) {
@@ -89,10 +90,9 @@ struct FsNode* vfsLookup(char* path) {
       i = 0;
 
     } else {
-      sp[i] = *p;
-      if (i == 64)
+      if (i >= 63)
         continue;
-
+      sp[i] = *p;
       i++;
       sp[i] = '\0';
     }
@@ -129,6 +129,7 @@ void vfsMount(char* path, char* dev, char* type) {
   mSpinlockAcquire(&mntSplock);
 
   struct FsMnt* mnt = malloc(sizeof(struct FsMnt));
+  memset(mnt, 0, sizeof(struct FsMnt));
 
   strcpy(mnt->Type, type);
   strcpy(mnt->Dev, dev);
