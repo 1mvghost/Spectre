@@ -50,7 +50,7 @@ static char* class[32] = {"Unknown",
                           "Encryption Controller",
                           "Signal Processing Controller"};
 
-struct LinkedList pciDevices;
+LinkedList pciDevices;
 
 u32 pciIn32(u32 bus, u32 dev, u32 func, u32 offset) {
   u32 address;
@@ -127,7 +127,7 @@ void pciCheckDevice(u32 bus, u32 dev) {
     /* 0xFFFF - NONEXISTENT DEVICE */
     if (vendor != 0xFFFF) {
       PCIDevice* d = (PCIDevice*)malloc(sizeof(PCIDevice));
-      llAppend(&pciDevices, d);
+      llAdd(&pciDevices, d);
 
       pciReadData(bus, dev, f, d);
 
@@ -149,6 +149,6 @@ void pciEnum() {
   }
 }
 void pciInit() {
-  llAlloc(&pciDevices);
+  llInit(&pciDevices);
   pciEnum();
 }

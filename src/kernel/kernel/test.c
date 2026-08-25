@@ -115,13 +115,18 @@ void test() {
   }
 #endif
 #ifdef LL_TEST
-  struct LinkedList ll;
-  llAlloc(&ll);
+  LinkedList ll;
+  llInit(&ll);
 
-  llAppend(&ll, "Hello World test");
-  llAppend(&ll, "Linked list test 123");
+  llAdd(&ll, "Hello World test");
+  llAdd(&ll, "Linked list test 123");
+  llAdd(&ll, "Linked list test 123");
+  llAdd(&ll, "Linked list test 123");
+  llAdd(&ll, "Linked list test 123");
+  llAdd(&ll, "Linked list test 123");
+  llAdd(&ll, "Linked list test 123");
 
-  struct LLNode* cur = ll.Head->Next;
+  LLNode* cur = ll.Head;
   while (cur) {
     printf(INFO, "%s\n", cur->Data);
     cur = cur->Next;

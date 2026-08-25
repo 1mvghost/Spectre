@@ -3,20 +3,18 @@
 
 #include <util.h>
 
-struct LLNode {
+typedef struct LLNode {
   void* Data;
   struct LLNode* Next;
-};
+} LLNode;
 
-struct LinkedList {
-  struct LLNode* Head;
-  struct LLNode* Tail;
-};
+typedef struct {
+  LLNode* Head;
+  LLNode* Tail;
+} LinkedList;
 
-void llAlloc(struct LinkedList* ll);
-
-void llAppend(struct LinkedList* ll, void* data);
-
-void llFree(struct LinkedList* ll);
+void llInit(LinkedList* ll);
+void llAdd(LinkedList* ll, void* data);
+void llFree(LinkedList* ll);
 
 #endif

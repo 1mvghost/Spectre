@@ -9,7 +9,7 @@
 #include <vfs.h>
 #include <vmm.h>
 
-struct LinkedList mntTable;
+LinkedList mntTable;
 struct FsNode* root;
 
 struct FsNode* vfsAlloc(struct FsMnt* mnt, u8 type) {
@@ -29,7 +29,7 @@ struct FsMnt* vfsFindMnt(struct FsNode* n) {
   if (!n)
     return 0;
 
-  struct LLNode* cur = mntTable.Head->Next;
+  LLNode* cur = mntTable.Head;
 
   while (cur) {
     struct FsMnt* curMnt = cur->Data;
@@ -145,7 +145,7 @@ void vfsMount(char* path, char* dev, char* type) {
     tmpInit(mnt);
   }
 
-  llAppend(&mntTable, mnt);
+  llAdd(&mntTable, mnt);
 
   debug("vfs: MOUNTED %s\n", path);
 
@@ -153,7 +153,7 @@ void vfsMount(char* path, char* dev, char* type) {
 }
 
 void vfsInit() {
-  llAlloc(&mntTable);
+  llInit(&mntTable);
 
   root = malloc(sizeof(struct FsNode));
 

@@ -1,29 +1,34 @@
 #include <alloc.h>
 #include <ll.h>
 
-void llAlloc(struct LinkedList* ll) {
-  struct LLNode* head = malloc(sizeof(struct LLNode));
-  memset(head, 0, sizeof(struct LLNode));
-
-  ll->Head = head;
-  ll->Tail = head;
+void llInit(LinkedList* ll) {
+  ll->Head = 0;
+  ll->Tail = 0;
 }
 
-void llAppend(struct LinkedList* ll, void* data) {
-  struct LLNode* tail = malloc(sizeof(struct LLNode));
-  memset(tail, 0, sizeof(struct LLNode));
+void llAdd(LinkedList* ll, void* data) {
+  LLNode* tail = malloc(sizeof(LLNode));
 
+  tail->Next = 0;
   tail->Data = data;
 
-  ll->Tail->Next = tail;
-  ll->Tail = ll->Tail->Next;
+  if (ll->Head == 0) {
+    ll->Head = tail;
+    ll->Tail = tail;
+  } else {
+    ll->Tail->Next = tail;
+    ll->Tail = ll->Tail->Next;
+  }
 }
 
-void llFree(struct LinkedList* ll) {
-  struct LLNode* cur = ll->Head;
+void llFree(LinkedList* ll) {
+  LLNode* cur = ll->Head;
   while (cur) {
-    struct LLNode* next = cur->Next;
+    LLNode* next = cur->Next;
     free(cur);
     cur = next;
   }
+
+  ll->Head = 0;
+  ll->Tail = 0;
 }
