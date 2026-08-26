@@ -5,7 +5,7 @@ typedef unsigned char u8;
 typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned long long int u64;
-typedef u64 size_t;
+typedef unsigned long int size_t;
 
 #define U64_LOW(addr) (addr & 0xffffffff)
 #define U64_HIGH(addr) ((addr >> 32) & 0xffffffff)

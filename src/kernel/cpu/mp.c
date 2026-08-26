@@ -1,27 +1,13 @@
-#include <acpi.h>
-#include <ahci.h>
-#include <alloc.h>
 #include <boot.h>
 #include <debug.h>
-#include <font.h>
 #include <gdt.h>
-#include <ide.h>
 #include <idt.h>
-#include <isr.h>
-#include <limine.h>
-#include <mmap.h>
-#include <mp.h>
-#include <pci.h>
-#include <pmm.h>
 #include <stdatomic.h>
-#include <stdio.h>
-#include <vmm.h>
 
 void mpEntry(struct limine_mp_info* mp) {
   gdtMCpuInit();
   idtMCpuInit();
 
-  debug("cpu%d: ONLINE\n", mp->processor_id);
   asm("cli");
   asm("hlt");
 }

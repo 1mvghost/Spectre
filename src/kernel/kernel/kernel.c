@@ -7,7 +7,6 @@
 #include <idt.h>
 #include <isr.h>
 #include <limine.h>
-#include <mmap.h>
 #include <mp.h>
 #include <panic.h>
 #include <pci.h>
@@ -49,7 +48,6 @@ void main() {
   idtInit();
   isrInit();
 
-  mMapInit();
   pmmInit();
   vmmInit();
 

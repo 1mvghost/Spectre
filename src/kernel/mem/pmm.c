@@ -1,5 +1,5 @@
+#include <boot.h>
 #include <debug.h>
-#include <mmap.h>
 #include <panic.h>
 #include <pmm.h>
 #include <vmm.h>
@@ -29,19 +29,22 @@ void pmmInit() {
   //                                              mMapGet(i).length);
   // }
 
-  u64 mx = 0;
-  int selected = 0;
+  int mMapLen = limineMMapRequest().response->entry_count;
 
-  for (int i = 0; i < mMapLen(); i++) {
-    if (mMapGet(i).type == LIMINE_MEMMAP_USABLE) {
-      if (mMapGet(i).length > mx) {
-        mx = mMapGet(i).length;
-        selected = i;
+  u64 mx = 0;
+  struct limine_memmap_entry* selected;
+
+  for (int i = 0; i < mMapLen; i++) {
+    struct limine_memmap_entry* ent = limineMMapRequest().response->entries[i];
+    if (ent->type == LIMINE_MEMMAP_USABLE) {
+      if (ent->length > mx) {
+        mx = ent->length;
+        selected = ent;
       }
     }
   }
 
-  here = mMapGet(selected).base;
+  here = selected->base;
   pages = mx / PAGE_SIZE;
 
   debug("pmm: start:%x pages:%d\n", here, pages);
