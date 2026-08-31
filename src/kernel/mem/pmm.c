@@ -22,13 +22,6 @@ u64 pmmAlloc(u64 l) {
 void pmmFree(u64 addr, u64 l) {}
 
 void pmmInit() {
-  // for(int i=0; i < mMapLen(); i++) {
-  //     debug("pmm: %x -> %x TYPE:%d SIZE:%d\n", mMapGet(i).base,
-  //                                              mMapGet(i).base+mMapGet(i).length,
-  //                                              mMapGet(i).type,
-  //                                              mMapGet(i).length);
-  // }
-
   int mMapLen = limineMMapRequest().response->entry_count;
 
   u64 mx = 0;

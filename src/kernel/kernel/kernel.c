@@ -1,4 +1,5 @@
 #include <acpi.h>
+#include <assert.h>
 #include <boot.h>
 #include <cons.h>
 #include <debug.h>
@@ -30,23 +31,15 @@ void main() {
 
   debugInit();
 
+  gdtInit();
+  idtInit();
+  isrInit();
+
   fbInit();
   consInit();
 
   printf(0, "spctrx v0.1 (www.github.com/1mvghost/spctrx)\n");
-  printf(0, "64-Bit Long Mode (");
-  switch (limineFirmwareRequest().response->firmware_type) {
-    case LIMINE_FIRMWARE_TYPE_EFI64:
-      printf(0, "UEFI)\n\n");
-      break;
-    case LIMINE_FIRMWARE_TYPE_X86BIOS:
-      printf(0, "BIOS)\n\n");
-      break;
-  }
-
-  gdtInit();
-  idtInit();
-  isrInit();
+  printf(0, "64-Bit Long Mode\n\n");
 
   pmmInit();
   vmmInit();

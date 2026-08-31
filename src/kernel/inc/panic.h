@@ -10,6 +10,6 @@ struct Stacktrace {
 };
 
 void panicIsr(Regs* regs);
-void panic(char* err);
+void panic(char* fmt, ...);
 
 #endif

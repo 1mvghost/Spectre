@@ -45,7 +45,8 @@ void panicIsr(Regs* regs) {
   printf(PANIC, "SS:%x KRSP:%x\n", regs->ss, regs->kRsp);
   panic("");
 }
-void panic(char* err) {
+
+void doPanic(char* err) {
   u32 eax = 1, ebx, ecx, edx;
   cpuid(&eax, &ebx, &ecx, &edx);
   u32 cpuId = (ebx >> 24) & 0xFF;
@@ -67,4 +68,17 @@ void panic(char* err) {
 
   asm("cli");
   asm("hlt");
+}
+
+void panic(char* fmt, ...) {
+  va_list va;
+  va_start(va);
+
+  u8 buf[1024];
+  memset(buf, 0, 1024);
+  vsprintf(buf, fmt, va);
+
+  doPanic(buf);
+
+  va_end(va);
 }
