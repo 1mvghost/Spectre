@@ -3,7 +3,7 @@
 #include <isr.h>
 #include <mem.h>
 #include <panic.h>
-#include <stdio.h>
+#include <printf.h>
 
 extern void isr0(Regs*);
 extern void isr1(Regs*);

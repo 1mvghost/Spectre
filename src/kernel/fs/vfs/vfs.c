@@ -4,7 +4,7 @@
 #include <ll.h>
 #include <mem.h>
 #include <ops.h>
-#include <stdio.h>
+#include <printf.h>
 #include <tmp.h>
 #include <vfs.h>
 #include <vmm.h>

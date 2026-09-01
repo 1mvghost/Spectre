@@ -2,7 +2,7 @@
 #include <debug.h>
 #include <mem.h>
 #include <pmm.h>
-#include <stdio.h>
+#include <printf.h>
 #include <util.h>
 #include <vmm.h>
 
@@ -240,8 +240,8 @@ void dumpHeap() {
   int m = 0;
   struct HeapChunk* cur = hpHead;
   while (cur) {
-    printf(INFO, "spalloc: %x > size:%d type:%d next:%x prev:%x\n", cur,
-           cur->Size, cur->Type, cur->Nxt, cur->Prev);
+    printf("spalloc: %x > size:%d type:%d next:%x prev:%x\n", cur, cur->Size,
+           cur->Type, cur->Nxt, cur->Prev);
     m += cur->Size + sizeof(struct HeapChunk);
     cur = cur->Nxt;
   }

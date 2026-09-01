@@ -53,3 +53,8 @@ void consInit() {
   textWidth = ALIGN_DOWN(fbResX() / 4, FWIDTH);
   textHeight = ALIGN_DOWN(fbResY(), FHEIGHT);
 }
+
+/* printf hook */
+void _putchar(char ch) {
+  consPutc(ch);
+}

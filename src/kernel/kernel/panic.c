@@ -1,7 +1,7 @@
 #include <panic.h>
-#include <stdio.h>
+#include <printf.h>
+#include <stdarg.h>
 #include <util.h>
-
 static const char* exceptions[32] = {"Div By Zero",
                                      "Debug",
                                      "NMI",
@@ -34,15 +34,15 @@ static const char* exceptions[32] = {"Div By Zero",
                                      "Unknown"};
 
 void panicIsr(Regs* regs) {
-  printf(PANIC, "%s\n", exceptions[regs->intId]);
-  printf(PANIC, "STOP:%x INT:%x\n", regs->errId, regs->intId);
-  printf(PANIC, "RAX:%x RBX:%x RCX:%x RDX:%x RSP:%x RDI:%x RSI:%x\n", regs->rax,
+  printf("%s\n", exceptions[regs->intId]);
+  printf("STOP:%x INT:%x\n", regs->errId, regs->intId);
+  printf("RAX:%x RBX:%x RCX:%x RDX:%x RSP:%x RDI:%x RSI:%x\n", regs->rax,
          regs->rbx, regs->rcx, regs->rdx, regs->rsp, regs->rdi, regs->rsi);
-  printf(PANIC, "R8:%x R9:%x R10:%x R11:%x R12:%x R13:%x R14:%x R15:%x\n",
-         regs->r8, regs->r9, regs->r10, regs->r11, regs->r12, regs->r13,
-         regs->r14, regs->r15);
-  printf(PANIC, "RIP:%x CS:%x RFLAGS:%x\n", regs->rip, regs->cs, regs->rFlags);
-  printf(PANIC, "SS:%x KRSP:%x\n", regs->ss, regs->kRsp);
+  printf("R8:%x R9:%x R10:%x R11:%x R12:%x R13:%x R14:%x R15:%x\n", regs->r8,
+         regs->r9, regs->r10, regs->r11, regs->r12, regs->r13, regs->r14,
+         regs->r15);
+  printf("RIP:%x CS:%x RFLAGS:%x\n", regs->rip, regs->cs, regs->rFlags);
+  printf("SS:%x KRSP:%x\n", regs->ss, regs->kRsp);
   panic("");
 }
 
@@ -52,9 +52,9 @@ void doPanic(char* err) {
   u32 cpuId = (ebx >> 24) & 0xFF;
 
   if (*err != '\0')
-    printf(PANIC, "%s", err);
-  printf(PANIC, "CPU: %d\n", cpuId);
-  printf(PANIC, "--- Kernel Call Trace ---\n");
+    printf("%s", err);
+  printf("CPU: %d\n", cpuId);
+  printf("--- Kernel Call Trace ---\n");
 
   struct Stacktrace* stk;
   asm("movq %%rbp,%0" : "=r"(stk)::);
@@ -62,7 +62,7 @@ void doPanic(char* err) {
   for (u64 fr = 0; stk && fr < 10; ++fr) {
     if (stk->rip == 0)
       break;
-    printf(PANIC, "%x\n", stk->rip);
+    printf("%x\n", stk->rip);
     stk = stk->rbp;
   }
 
@@ -74,9 +74,9 @@ void panic(char* fmt, ...) {
   va_list va;
   va_start(va);
 
-  u8 buf[1024];
+  char buf[1024];
   memset(buf, 0, 1024);
-  vsprintf(buf, fmt, va);
+  vsnprintf(buf, 1024, fmt, va);
 
   doPanic(buf);
 

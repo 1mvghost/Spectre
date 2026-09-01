@@ -12,7 +12,7 @@
 #include <panic.h>
 #include <pci.h>
 #include <pmm.h>
-#include <stdio.h>
+#include <printf.h>
 #include <test.h>
 #include <util.h>
 #include <vfs.h>
@@ -38,8 +38,8 @@ void main() {
   fbInit();
   consInit();
 
-  printf(0, "spctrx v0.1 (www.github.com/1mvghost/spctrx)\n");
-  printf(0, "64-Bit Long Mode\n\n");
+  printf("spctrx v0.1 (www.github.com/1mvghost/spctrx)\n");
+  printf("64-Bit Long Mode\n\n");
 
   pmmInit();
   vmmInit();

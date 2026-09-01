@@ -4,8 +4,6 @@
 #include <ide.h>
 #include <ll.h>
 #include <pci.h>
-#include <stdio.h>
-#include <vmm.h>
 
 #define CONFIG_ADDRESS 0xCF8
 #define CONFIG_DATA 0xCFC

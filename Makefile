@@ -17,7 +17,7 @@ LIMINE_VER	=v11.x
 #Tools
 FORMAT=clang-format
 
-all: clean kernel limine iso
+all: clean format kernel limine iso
 
 $(BUILD):
 	@mkdir -p $(BUILD)
@@ -49,7 +49,7 @@ iso: $(BUILD)
 	@echo "*** iso ready: $(ISO_BUILD)"
 
 format:
-	@find $(SRC) -regex '.*\.\(c\|h\)' ! -name "*limine*" -exec $(FORMAT) -style=file -i {} \;
+	@find $(SRC) -regex '.*\.\(c\|h\)' ! -name "*limine*" ! -name "*printf*" -exec $(FORMAT) -style=file -i {} \;
 
 clean:
 	rm -rf $(BUILD) $(ISO) $(KERNEL_BUILD)

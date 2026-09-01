@@ -15,31 +15,31 @@
 #include <ops.h>
 #include <pci.h>
 #include <pmm.h>
-#include <stdio.h>
+#include <printf.h>
 #include <util.h>
 #include <vmm.h>
 
 void test() {
 // #define IDE_TEST
 #ifdef IDE_TEST
-  printf(INFO, "ide: test\n");
+  printf("ide: test\n");
   u8* buf = calloc(512);
   ideRead(0, 0, 1, buf);
   for (int i = 0; i < 512; i++)
-    printf(0, "%c", buf[i]);
+    printf("%c", buf[i]);
   free(buf);
-  printf(0, "\n");
+  printf("\n");
 #endif
 // #define AHCI_TEST
 #ifdef AHCI_TEST
   u8* buf = calloc(512);
-  printf(INFO, "ahci: test\n");
+  printf("ahci: test\n");
   buf = calloc(512);
   ahciRead(0, 0, 1, buf);
   for (int i = 0; i < 512; i++)
-    printf(0, "%c", buf[i]);
+    printf("%c", buf[i]);
   free(buf);
-  printf(0, "\n");
+  printf("\n");
 #endif
 #ifdef SERIAL_TEST
   // debugPuts("serial test test\n");
@@ -49,7 +49,7 @@ void test() {
 #ifdef PMM_TEST
   u64* a = pmmAlloc(1);
   u64* b = pmmAlloc(1);
-  printf(INFO, "a:%x b:%x\n", a, b);
+  printf("a:%x b:%x\n", a, b);
 
   pmmFree(a, 1);
 
@@ -58,15 +58,15 @@ void test() {
 
 #endif
 #ifdef PRINT_TEST
-  printf(INFO, "test\n");
+  printf("test\n");
   char buf[67];
   memset(buf, 0, 67);
   sprintf(buf, "Hello world %x %x hi 123 %s %c\ns\n", 0xdeadbeef, 0xcafebabe,
           "string", '!');
   for (int i = 0; i < 67; i++) {
-    printf(0, "%c", buf[i]);
+    printf("%c", buf[i]);
   }
-  printf(0, "hi!\n");
+  printf("hi!\n");
 #endif
 // #define ALLOC_TEST
 #ifdef ALLOC_TEST
@@ -88,29 +88,29 @@ void test() {
   }
 
   char* buf = "SERIAL TEST\n";
-  printf(INFO, "vfs: wrote %d bytes\n", vfsWrite(fd, (u8*)buf, strlen(buf)));
+  printf("vfs: wrote %d bytes\n", vfsWrite(fd, (u8*)buf, strlen(buf)));
 
-  printf(INFO, "* readdir on /dev *\n");
+  printf("* readdir on /dev *\n");
   struct FsFd* fd2 = vfsOpen("/dev", 0x03);
   void* testt = calloc(1024);
   struct linux_dirent64* dent = testt;
 
   vfsReadDir(fd2, dent, 1);
-  printf(INFO, "%s\n", dent->d_name);
+  printf("%s\n", dent->d_name);
 
-  printf(INFO, "* readdir on / *\n");
+  printf("* readdir on / *\n");
   struct FsFd* fd3 = vfsOpen("/", 0x03);
   void* testtt = calloc(1024);
   struct linux_dirent64* dentt = testtt;
 
   vfsReadDir(fd3, dentt, 1);
 
-  printf(INFO, "%s\n", dentt->d_name);
+  printf("%s\n", dentt->d_name);
 
 #endif
 #ifdef CONS_TEST
   for (int i = 0; i < 100000; i++) {
-    printf(0, "abb");
+    printf("abb");
   }
 #endif
 #ifdef LL_TEST
@@ -127,7 +127,7 @@ void test() {
 
   LLNode* cur = ll.Head;
   while (cur) {
-    printf(INFO, "%s\n", cur->Data);
+    printf("%s\n", cur->Data);
     cur = cur->Next;
   }
 #endif

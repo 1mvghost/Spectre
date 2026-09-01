@@ -1,7 +1,7 @@
 #include <debug.h>
 #include <mem.h>
+#include <printf.h>
 #include <stdarg.h>
-#include <stdio.h>
 
 #define COM1 0x3F8
 
@@ -25,9 +25,9 @@ void debug(char* fmt, ...) {
   va_list va;
   va_start(va, fmt);
 
-  u8 buf[1024];
+  char buf[1024];
   memset(buf, 0, 1024);
-  vsprintf(buf, fmt, va);
+  vsnprintf(buf, 1024, fmt, va);
 
   for (int i = 0; i < 1024; i++) {
     if (!buf[i])
