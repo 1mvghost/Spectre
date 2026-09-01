@@ -19,7 +19,10 @@ u64 pmmAlloc(u64 l) {
   return here - (PAGE_SIZE * l);
 }
 
-void pmmFree(u64 addr, u64 l) {}
+void pmmFree(u64 addr, u64 l) {
+  UNUSED(addr);
+  UNUSED(l);
+}
 
 void pmmInit() {
   int mMapLen = limineMMapRequest().response->entry_count;

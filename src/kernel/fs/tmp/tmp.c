@@ -8,9 +8,12 @@
 struct FsNode* dirdev;
 
 int tmpOpen(struct FsNode* n, u64 flags) {
+  UNUSED(n);
+  UNUSED(flags);
   return 1;
 }
 struct FsNode* tmpLookup(struct FsNode* n, char* name) {
+  UNUSED(n);
   if (!strcmp(name, "dev")) {
     return dirdev;
   }

@@ -19,6 +19,8 @@ typedef unsigned long int size_t;
 
 #define ALIGN_DOWN(num, align) (num & ~((align) - 1))
 
+#define UNUSED(param) (void)param
+
 static inline void out8(u16 port, u8 val) {
   __asm__ volatile("outb %0, %1" : : "a"(val), "Nd"(port));
 }

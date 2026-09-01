@@ -137,11 +137,10 @@ void vfsMount(char* path, char* dev, char* type) {
 
   mnt->Mnt = l;
 
-  /* todo : find a better way */
-  if (type == "dev") {
+  if (!strcmp(type, "dev")) {
     devInit(mnt);
   }
-  if (type == "tmp") {
+  if (!strcmp(type, "tmp")) {
     tmpInit(mnt);
   }
 

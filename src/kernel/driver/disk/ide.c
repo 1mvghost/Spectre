@@ -82,9 +82,8 @@ struct {
  * TODO: cleanup
  */
 
-// static u8 buf[2048] = {0};
 static u8* buf;
-volatile static bool irqInvoked = 0;
+static volatile bool irqInvoked = 0;
 
 void ideSleep() {
   for (int i = 0; i < 4; i++)
@@ -181,7 +180,6 @@ u8 ideAccessAta(u8 dir, u8 disk, u32 lba, u8 sectAmount, u16* buf) {
   u32 words = 256;
   u16 i = 0;
   u8 head = 0;
-  u8 err = 0;
 
   ideOut8(ch, ATA_REG_CONTROL, channels[ch].NieN = (irqInvoked = 0x0) + 0x02);
 

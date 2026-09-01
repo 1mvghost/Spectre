@@ -62,7 +62,7 @@ void doPanic(char* err) {
   for (u64 fr = 0; stk && fr < 10; ++fr) {
     if (stk->rip == 0)
       break;
-    printf("%x\n", stk->rip);
+    printf("%llx\n", stk->rip);
     stk = stk->rbp;
   }
 

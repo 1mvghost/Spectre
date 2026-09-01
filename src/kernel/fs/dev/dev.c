@@ -6,6 +6,7 @@
 struct FsNode* dirdebug;
 
 struct FsNode* devLookup(struct FsNode* n, char* name) {
+  UNUSED(n);
   if (!strcmp(name, "dbg")) {
     return dirdebug;
   }
@@ -31,11 +32,13 @@ bool devReadDir(struct FsFd* fd, struct linux_dirent64* buf, u64 size) {
   return 1;
 }
 int devOpen(struct FsNode* n, u64 flags) {
+  UNUSED(n);
+  UNUSED(flags);
   return 1;
 }
 int devWrite(struct FsFd* fd, u8* buf, u64 size) {
   if (fd->Inode == dirdebug) {
-    for (int i = 0; i < size; i++) {
+    for (u64 i = 0; i < size; i++) {
       debugPutc(buf[i]);
     }
     return size;

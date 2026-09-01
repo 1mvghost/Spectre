@@ -5,6 +5,8 @@
 #include <stdatomic.h>
 
 void mpEntry(struct limine_mp_info* mp) {
+  UNUSED(mp);
+
   gdtMCpuInit();
   idtMCpuInit();
 

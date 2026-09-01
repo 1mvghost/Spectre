@@ -191,7 +191,7 @@ int ahciCmdFindFree(HbaPort* port) {
   u32 slots = (port->SAct | port->Ci);
   u32 cmdSlots = (base->Cap & 0x0f00) >> 8;
 
-  for (int i = 0; i < cmdSlots; i++) {
+  for (u32 i = 0; i < cmdSlots; i++) {
     if (!(slots & 1)) {
       return i;
     }
