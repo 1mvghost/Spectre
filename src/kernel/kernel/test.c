@@ -131,4 +131,12 @@ void test() {
     cur = cur->Next;
   }
 #endif
+#ifdef VMM_TEST
+  vmmMap(0, pmmAlloc(1), PTE_WRITABLE);
+  *((char*)0) = '!';
+  printf("%c\n", *((char*)0));
+  vmmUnmap(0);
+  printf("unmapped\n");
+  printf("%c\n", *((char*)0));
+#endif
 }

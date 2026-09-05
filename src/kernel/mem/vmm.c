@@ -31,25 +31,36 @@ u64 vmmAllocPTE(u64 flags) {
   return vmmInitPTE(pmmAlloc(1), flags);
 }
 
+PageTable* vmmWalk(void* virt, bool alloc, u64 allocFlags) {
+  if (p4->Ent[P4(virt)] == 0) {
+    if (!alloc)
+      return 0;
+    p4->Ent[P4(virt)] = vmmAllocPTE(allocFlags);
+  }
+
+  PageTable* p3 = vmmGetPageTable(p4->Ent[P4(virt)]);
+
+  if (p3->Ent[P3(virt)] == 0) {
+    if (!alloc)
+      return 0;
+    p3->Ent[P3(virt)] = vmmAllocPTE(allocFlags);
+  }
+
+  PageTable* p2 = vmmGetPageTable(p3->Ent[P3(virt)]);
+
+  if (p2->Ent[P2(virt)] == 0) {
+    if (!alloc)
+      return 0;
+    p2->Ent[P2(virt)] = vmmAllocPTE(allocFlags);
+  }
+
+  return vmmGetPageTable(p2->Ent[P2(virt)]);
+}
 void vmmMap(void* virt, u64 phys, u64 flags) {
-  if (p4->Ent[P4(virt)] == 0)
-    p4->Ent[P4(virt)] = vmmAllocPTE(flags);
-
-  PageTable* p3 = (PageTable*)vmmGetPageTable(p4->Ent[P4(virt)]);
-
-  if (p3->Ent[P3(virt)] == 0)
-    p3->Ent[P3(virt)] = vmmAllocPTE(flags);
-
-  PageTable* p2 = (PageTable*)vmmGetPageTable(p3->Ent[P3(virt)]);
-
-  if (p2->Ent[P2(virt)] == 0)
-    p2->Ent[P2(virt)] = vmmAllocPTE(flags);
-
-  PageTable* p1 = (PageTable*)vmmGetPageTable(p2->Ent[P2(virt)]);
-
-  invlpg(&p1->Ent[P1(virt)]);
+  PageTable* p1 = vmmWalk(virt, true, flags);
 
   p1->Ent[P1(virt)] = vmmInitPTE(phys, flags);
+  invlpg(&p1->Ent[P1(virt)]);
 }
 
 void vmmMapPages(void* virt, u64 phys, u64 flags, int n) {
@@ -60,23 +71,12 @@ void vmmMapPages(void* virt, u64 phys, u64 flags, int n) {
 }
 
 void vmmUnmap(void* virt) {
-  if (p4->Ent[P4(virt)] == 0)
+  PageTable* p1 = vmmWalk(virt, false, 0);
+  if (p1 == 0)
     return;
 
-  PageTable* p3 = (PageTable*)vmmGetPageTable(p4->Ent[P4(virt)]);
-
-  if (p3->Ent[P3(virt)] == 0)
-    return;
-
-  PageTable* p2 = (PageTable*)vmmGetPageTable(p3->Ent[P3(virt)]);
-
-  if (p2->Ent[P2(virt)] == 0)
-    return;
-
-  PageTable* p1 = (PageTable*)vmmGetPageTable(p2->Ent[P2(virt)]);
-
-  invlpg(&p1->Ent[P1(virt)]);
   p1->Ent[P1(virt)] = 0;
+  invlpg(&p1->Ent[P1(virt)]);
 }
 
 void vmmUnmapPages(void* virt, int n) {
